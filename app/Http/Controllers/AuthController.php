@@ -50,6 +50,14 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($credentials)) {
+            // เช็คว่าถูกแบนไหม
+            if (Auth::user()->is_banned) {
+                Auth::logout();
+                return back()->withErrors([
+                    'email' => 'บัญชีของคุณถูกระงับการใช้งาน',
+                ])->onlyInput('email');
+            }
+
             $request->session()->regenerate();
             return redirect('/')->with('success', 'เข้าสู่ระบบสำเร็จ!');
         }

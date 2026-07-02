@@ -27,6 +27,8 @@ class User extends Authenticatable
         'shop_name',
         'avatar',
         'is_shop',
+        'is_admin',
+        'is_banned',
     ];
 
     /**

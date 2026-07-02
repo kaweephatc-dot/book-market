@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\ChatController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AdminController;
 
 // หน้าสมัครสมาชิก
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
@@ -20,6 +21,20 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // หน้าหลัก
 Route::get('/', [BookController::class, 'index'])->name('home');
+
+// ==== Admin เท่านั้น ====
+    Route::middleware('admin')->prefix('admin')->group(function () {
+        Route::get('/', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+
+        // จัดการผู้ใช้
+        Route::get('/users', [AdminController::class, 'users'])->name('admin.users');
+        Route::post('/users/{user}/ban', [AdminController::class, 'toggleBan'])->name('admin.users.ban');
+        Route::delete('/users/{user}', [AdminController::class, 'deleteUser'])->name('admin.users.delete');
+
+        // จัดการหนังสือ
+        Route::get('/books', [AdminController::class, 'books'])->name('admin.books');
+        Route::delete('/books/{book}', [AdminController::class, 'deleteBook'])->name('admin.books.delete');
+    });
 
 // ==== ต้อง login ก่อน ====
 Route::middleware('auth')->group(function () {

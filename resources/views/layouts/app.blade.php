@@ -36,6 +36,13 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('payment.index') }}">💳 การชำระเงิน</a>
                         </li>
+
+                            @if (Auth::user()->is_admin)
+                                <li class="nav-item">
+                                    <a class="nav-link text-warning" href="{{ route('admin.dashboard') }}">🛡️ Admin</a>
+                                </li>
+                            @endif
+
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('profile.index') }}">👤 {{ Auth::user()->name }}</a>
                         </li>
