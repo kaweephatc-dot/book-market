@@ -20,7 +20,7 @@
 
 🧰 เทคโนโลยีที่ใช้
 
-ส่วนเทคโนโลยีBackendPHP, Laravel 12FrontendBlade, Tailwind CSS 4, JavaScript (Vite)ฐานข้อมูลMySQLDeploymentRailway
+ส่วนเทคโนโลยีBackendPHP, Laravel 12FrontendBlade, Tailwind CSS 4, JavaScript (Vite)ฐานข้อมูลMySQL DeploymentRailway
 
 🚀 การติดตั้งเพื่อรันบนเครื่อง (Local Development)
 
