@@ -3,10 +3,6 @@
 เว็บแอปพลิเคชันตลาดกลางสำหรับซื้อ ขาย และแลกเปลี่ยนหนังสือมือสอง พัฒนาแบบ Full-stack ด้วย Laravel — โปรเจคจบการศึกษา สาขาวิทยาการคอมพิวเตอร์ มหาวิทยาลัยราชภัฏนครสวรรค์
 
 
-🎓 Senior project: a second-hand book marketplace web application built with Laravel.
-
-
-
 ✨ ฟีเจอร์หลัก
 
 
@@ -49,4 +45,4 @@ composer run dev
 
 กวีพัฒน์ ชูชิต (Kaweephat Chuchit)
 นักศึกษาสาขาวิทยาการคอมพิวเตอร์ มหาวิทยาลัยราชภัฏนครสวรรค์
-📧 kaweephat.c@nsru.ac.th
+kaweephat.c@nsru.ac.th
