@@ -20,7 +20,8 @@
 
 🚀 การติดตั้งเพื่อรันบนเครื่อง (Local Development)
 
-bash# 1. Clone โปรเจค
+bash
+# 1. Clone โปรเจค
 git clone https://github.com/kaweephatc-dot/book-market.git
 cd book-market
 
