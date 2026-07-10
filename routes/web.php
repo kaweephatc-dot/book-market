@@ -7,6 +7,7 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\ChatController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ReviewController;
 
 // หน้าสมัครสมาชิก
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
@@ -72,7 +73,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/payment', [PaymentController::class, 'store'])->name('payment.store');
     Route::delete('/payment/{paymentMethod}', [PaymentController::class, 'destroy'])->name('payment.destroy');
 
+    // รีวิวร้าน
+    Route::post('/reviews/{shop}', [ReviewController::class, 'store'])->name('reviews.store');
+    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
 });
 
 // ดูรายละเอียดหนังสือ (ทุกคนดูได้)
 Route::get('/books/{book}', [BookController::class, 'show'])->name('books.show');
+
+// หน้าโปรไฟล์ร้าน (ทุกคนดูได้)
+Route::get('/shop/{shop}', [ProfileController::class, 'showShop'])->name('shop.show');

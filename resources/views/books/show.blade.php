@@ -97,7 +97,24 @@
         <hr>
 
         <div class="mb-3">
-            <strong>ผู้ขาย:</strong> 🏪 {{ $book->user->shop_name ?? $book->user->name }}
+            <strong>ผู้ขาย:</strong>
+            <a href="{{ route('shop.show', $book->user) }}" class="text-decoration-none">
+                🏪 {{ $book->user->shop_name ?? $book->user->name }}
+            </a>
+            @php
+                $shopAvg = $book->user->averageRating();
+                $shopCount = $book->user->reviewCount();
+            @endphp
+            @if ($shopCount > 0)
+                <div class="mt-1">
+                    @for ($i = 1; $i <= 5; $i++)
+                        <span style="color: {{ $i <= round($shopAvg) ? '#ffc107' : '#ddd' }};">★</span>
+                    @endfor
+                    <span class="text-muted small">{{ $shopAvg }} ({{ $shopCount }} รีวิว)</span>
+                </div>
+            @else
+                <div class="text-muted small mt-1">ยังไม่มีรีวิว</div>
+            @endif
         </div>
 
         @auth

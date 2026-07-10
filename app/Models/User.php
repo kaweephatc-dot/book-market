@@ -58,4 +58,34 @@ class User extends Authenticatable
     {
         return $this->hasMany(PaymentMethod::class);
     }
+
+    // รีวิวที่ร้านนี้ได้รับ
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'shop_id');
+    }
+
+    // รีวิวที่ผู้ใช้คนนี้เขียนให้คนอื่น
+    public function reviewsGiven()
+    {
+        return $this->hasMany(Review::class, 'reviewer_id');
+    }
+
+    // คะแนนดาวเฉลี่ยของร้าน
+    public function averageRating()
+    {
+        return round($this->reviews()->avg('rating'), 1);
+    }
+
+    // จำนวนรีวิวทั้งหมด
+    public function reviewCount()
+    {
+        return $this->reviews()->count();
+    }
+
+    // หนังสือทั้งหมดของผู้ใช้คนนี้
+    public function books()
+    {
+        return $this->hasMany(Book::class);
+    }
 }

@@ -90,4 +90,36 @@ class ProfileController extends Controller
 
         return redirect()->route('profile.index')->with('success', 'แก้ไขโปรไฟล์สำเร็จ!');
     }
+
+    // แสดงหน้าโปรไฟล์ร้าน (สาธารณะ)
+    public function showShop(\App\Models\User $shop)
+    {
+        // ต้องเป็นร้านค้าเท่านั้น
+        if (!$shop->is_shop) {
+            abort(404);
+        }
+
+        // โหลดข้อมูล
+        $shop->load(['reviews.reviewer', 'books' => function ($q) {
+            $q->where('status', 'available')->with('images');
+        }]);
+
+        // เช็คว่าคนที่ดูอยู่รีวิวได้ไหม
+        $canReview = false;
+        $myReview = null;
+
+        if (auth()->check() && auth()->id() !== $shop->id) {
+            // เคยแชทกับร้านนี้ไหม
+            $canReview = \App\Models\Conversation::where('buyer_id', auth()->id())
+                ->where('seller_id', $shop->id)
+                ->exists();
+
+            // เคยรีวิวไปแล้วหรือยัง
+            $myReview = \App\Models\Review::where('reviewer_id', auth()->id())
+                ->where('shop_id', $shop->id)
+                ->first();
+        }
+
+        return view('profile.shop', compact('shop', 'canReview', 'myReview'));
+    }
 }
