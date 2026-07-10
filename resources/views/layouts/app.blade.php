@@ -36,6 +36,9 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('payment.index') }}">💳 การชำระเงิน</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('orders.index') }}">🧾 คำสั่งซื้อ</a>
+                        </li>
 
                             @if (Auth::user()->is_admin)
                                 <li class="nav-item">

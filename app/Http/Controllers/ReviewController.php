@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Review;
 use App\Models\Conversation;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Order;
 
 class ReviewController extends Controller
 {
@@ -25,13 +26,14 @@ class ReviewController extends Controller
             return back()->with('error', 'ไม่สามารถรีวิวร้านตัวเองได้');
         }
 
-        // 3. ตรวจสอบว่าเคยแชทกับร้านนี้ไหม
-        $hasChatted = Conversation::where('buyer_id', $reviewerId)
+        // 3. ตรวจสอบว่าเคยซื้อขายเสร็จสมบูรณ์กับร้านนี้ไหม
+        $hasCompletedOrder = Order::where('buyer_id', $reviewerId)
             ->where('seller_id', $shop->id)
+            ->where('status', 'completed')
             ->exists();
 
-        if (!$hasChatted) {
-            return back()->with('error', 'คุณต้องเคยติดต่อร้านนี้ก่อนถึงจะรีวิวได้');
+        if (!$hasCompletedOrder) {
+            return back()->with('error', 'คุณต้องซื้อขายกับร้านนี้สำเร็จก่อนถึงจะรีวิวได้');
         }
 
         // 4. ตรวจสอบข้อมูล

@@ -109,9 +109,10 @@ class ProfileController extends Controller
         $myReview = null;
 
         if (auth()->check() && auth()->id() !== $shop->id) {
-            // เคยแชทกับร้านนี้ไหม
-            $canReview = \App\Models\Conversation::where('buyer_id', auth()->id())
+            // เคยซื้อขายเสร็จกับร้านนี้ไหม
+            $canReview = \App\Models\Order::where('buyer_id', auth()->id())
                 ->where('seller_id', $shop->id)
+                ->where('status', 'completed')
                 ->exists();
 
             // เคยรีวิวไปแล้วหรือยัง

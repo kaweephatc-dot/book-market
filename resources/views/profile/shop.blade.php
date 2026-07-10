@@ -63,7 +63,7 @@
                     </div>
                 </div>
             @elseif (auth()->id() !== $shop->id)
-                <div class="alert alert-secondary small">ติดต่อร้านผ่านแชทก่อนถึงจะรีวิวได้</div>
+                <div class="alert alert-secondary small">ซื้อขายกับร้านนี้สำเร็จก่อนถึงจะรีวิวได้</div>
             @endif
         @endauth
     </div>

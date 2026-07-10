@@ -8,6 +8,7 @@ use App\Http\Controllers\ChatController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\OrderController;
 
 // หน้าสมัครสมาชิก
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
@@ -35,6 +36,10 @@ Route::get('/', [BookController::class, 'index'])->name('home');
         // จัดการหนังสือ
         Route::get('/books', [AdminController::class, 'books'])->name('admin.books');
         Route::delete('/books/{book}', [AdminController::class, 'deleteBook'])->name('admin.books.delete');
+
+        // จัดการคำสั่งซื้อ
+        Route::get('/orders', [AdminController::class, 'orders'])->name('admin.orders');
+        Route::post('/orders/{order}/resolve', [AdminController::class, 'resolveDispute'])->name('admin.orders.resolve');
     });
 
 // ==== ต้อง login ก่อน ====
@@ -76,6 +81,16 @@ Route::middleware('auth')->group(function () {
     // รีวิวร้าน
     Route::post('/reviews/{shop}', [ReviewController::class, 'store'])->name('reviews.store');
     Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+
+    // ระบบซื้อขาย
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::post('/orders/{book}', [OrderController::class, 'store'])->name('orders.store');
+    Route::post('/orders/{order}/accept', [OrderController::class, 'accept'])->name('orders.accept');
+    Route::post('/orders/{order}/slip', [OrderController::class, 'uploadSlip'])->name('orders.slip');
+    Route::post('/orders/{order}/confirm-payment', [OrderController::class, 'confirmPayment'])->name('orders.confirmPayment');
+    Route::post('/orders/{order}/complete', [OrderController::class, 'confirmComplete'])->name('orders.complete');
+    Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+    Route::post('/orders/{order}/dispute', [OrderController::class, 'dispute'])->name('orders.dispute');
 });
 
 // ดูรายละเอียดหนังสือ (ทุกคนดูได้)
