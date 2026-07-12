@@ -22,13 +22,18 @@
                                 <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">📚</div>
                             @endif
                             <div class="flex-grow-1">
-                                <div class="d-flex justify-content-between">
+                                <div class="d-flex justify-content-between align-items-center">
                                     <strong>{{ $conv->book->title }}</strong>
-                                    <small class="text-muted">{{ $conv->updated_at->diffForHumans() }}</small>
+                                    <div class="d-flex align-items-center gap-2">
+                                        @if ($conv->unread_count > 0)
+                                            <span class="badge rounded-pill bg-danger">{{ $conv->unread_count }}</span>
+                                        @endif
+                                        <small class="text-muted">{{ $conv->updated_at->diffForHumans() }}</small>
+                                    </div>
                                 </div>
                                 <div class="small text-muted">กับ {{ $other->shop_name ?? $other->name }}</div>
                                 @if ($conv->latestMessage)
-                                    <div class="small text-truncate">{{ $conv->latestMessage->message }}</div>
+                                    <div class="small text-truncate {{ $conv->unread_count > 0 ? 'fw-bold' : 'text-muted' }}">{{ $conv->latestMessage->message }}</div>
                                 @endif
                             </div>
                         </div>

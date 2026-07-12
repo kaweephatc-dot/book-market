@@ -31,7 +31,14 @@
                             <a class="nav-link" href="{{ route('books.my') }}">📚 หนังสือของฉัน</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('chat.index') }}">💬 ข้อความ</a>
+                            <a class="nav-link position-relative" href="{{ route('chat.index') }}">
+                                💬 ข้อความ
+                                @if (isset($unreadMessageCount) && $unreadMessageCount > 0)
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px;">
+                                        {{ $unreadMessageCount > 99 ? '99+' : $unreadMessageCount }}
+                                    </span>
+                                @endif
+                            </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('payment.index') }}">💳 การชำระเงิน</a>

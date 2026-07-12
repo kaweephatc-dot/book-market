@@ -16,8 +16,12 @@ class ChatController extends Controller
 
         // ดึงห้องแชทที่เราเป็นผู้ซื้อหรือผู้ขาย
         $conversations = Conversation::with(['book', 'buyer', 'seller', 'latestMessage'])
-            ->where('buyer_id', $userId)
-            ->orWhere('seller_id', $userId)
+            ->withCount(['messages as unread_count' => function ($q) use ($userId) {
+                $q->where('user_id', '!=', $userId)->where('is_read', false);
+            }])
+            ->where(function ($q) use ($userId) {
+                $q->where('buyer_id', $userId)->orWhere('seller_id', $userId);
+            })
             ->latest('updated_at')
             ->get();
 
@@ -59,7 +63,12 @@ class ChatController extends Controller
             abort(403, 'คุณไม่มีสิทธิ์เข้าถึงการสนทนานี้');
         }
 
-        // โหลดข้อมูล + ช่องทางการชำระเงินของผู้ขาย
+        // มาร์คข้อความที่คนอื่นส่งมาในห้องนี้ว่าอ่านแล้ว
+        $conversation->messages()
+            ->where('user_id', '!=', $userId)
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
+
         $conversation->load(['book', 'buyer', 'seller.paymentMethods', 'messages.user']);
 
         // เช็คว่าคนที่กำลังดูเป็นผู้ซื้อไหม (ผู้ซื้อเท่านั้นที่เห็นช่องทางจ่ายเงิน)
