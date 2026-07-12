@@ -37,6 +37,18 @@
                         <div class="small text-muted">สลิปโอนเงิน (คลิกเพื่อดูเต็ม)</div>
                     </div>
                 @endif
+                {{-- แสดงหลักฐานการส่งของ (ถ้ามี) --}}
+                @if ($order->shipping_proof)
+                    <div class="mt-2">
+                        <a href="{{ asset('storage/' . $order->shipping_proof) }}" target="_blank">
+                            <img src="{{ asset('storage/' . $order->shipping_proof) }}" style="max-height: 80px;" class="rounded border" alt="หลักฐานการส่ง">
+                        </a>
+                        <div class="small text-muted">หลักฐานการส่งของ (คลิกดูเต็ม)</div>
+                        @if ($order->tracking_number)
+                            <div class="small"><strong>เลขพัสดุ:</strong> {{ $order->tracking_number }}</div>
+                        @endif
+                    </div>
+                @endif
 
                 {{-- ปุ่มจัดการ ตามสถานะและบทบาท --}}
                 <div class="mt-2 d-flex gap-1 flex-wrap">
@@ -58,39 +70,50 @@
                         </form>
                     @endif
 
-                    {{-- ผู้ขาย: ยืนยันรับเงิน --}}
-                    @if ($role === 'seller' && $order->status === 'accepted' && $order->slip_image)
+                    {{-- ผู้ขาย: ยืนยันสลิป --}}
+                    @if ($role === 'seller' && $order->status === 'paid' && $order->slip_image && !$order->seller_confirmed)
                         <form method="POST" action="{{ route('orders.confirmPayment', $order) }}">
                             @csrf
-                            <button class="btn btn-sm btn-primary">ยืนยันรับเงิน</button>
+                            <button class="btn btn-sm btn-primary">🧾 ยืนยันสลิป</button>
                         </form>
                     @endif
 
-                    {{-- ทั้งสองฝ่าย: ยืนยันเสร็จสิ้น --}}
-                    @if ($order->status === 'paid')
-                        @php
-                            $myConfirmed = $role === 'buyer' ? $order->buyer_confirmed : $order->seller_confirmed;
-                        @endphp
-                        @if (!$myConfirmed)
-                            <form method="POST" action="{{ route('orders.complete', $order) }}">
-                                @csrf
-                                <button class="btn btn-sm btn-success">ยืนยันว่าเสร็จแล้ว</button>
-                            </form>
+                    {{-- ผู้ขาย: ยืนยันสลิปแล้ว → ส่งของ --}}
+                    @if ($role === 'seller' && $order->status === 'paid' && $order->seller_confirmed && !$order->is_shipped)
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#shipModal{{ $order->id }}">📦 ยืนยันการส่งของ</button>
+                    @endif
+
+                    {{-- ผู้ซื้อ: รอผู้ขายดำเนินการ (ตอน paid) --}}
+                    @if ($role === 'buyer' && $order->status === 'paid')
+                        @if (!$order->seller_confirmed)
+                            <span class="badge bg-warning">รอผู้ขายยืนยันสลิป</span>
                         @else
-                            <span class="badge bg-secondary">คุณยืนยันแล้ว รออีกฝ่าย</span>
+                            <span class="badge bg-info">รอผู้ขายส่งของ</span>
+                        @endif
+                    @endif
+
+                    {{-- สถานะกำลังจัดส่ง --}}
+                    @if ($order->status === 'shipping')
+                        @if ($role === 'seller')
+                            <span class="badge bg-info">ส่งของแล้ว รอผู้ซื้อยืนยันรับ</span>
+                        @else
+                            <form method="POST" action="{{ route('orders.received', $order) }}" onsubmit="return confirm('ยืนยันว่าได้รับหนังสือเรียบร้อยแล้ว?')">
+                                @csrf
+                                <button class="btn btn-sm btn-success">📬 ยืนยันได้รับของแล้ว</button>
+                            </form>
                         @endif
                     @endif
 
                     {{-- ยกเลิก (ก่อนเสร็จ) --}}
-                    @if (in_array($order->status, ['pending', 'accepted', 'paid']))
+                    @if (in_array($order->status, ['pending', 'accepted', 'paid', 'shipping']))
                         <form method="POST" action="{{ route('orders.cancel', $order) }}" onsubmit="return confirm('ยกเลิกออเดอร์นี้?')">
                             @csrf
                             <button class="btn btn-sm btn-outline-danger">ยกเลิก</button>
                         </form>
                     @endif
 
-                    {{-- แจ้งปัญหา (ตอน paid) --}}
-                    @if ($order->status === 'paid')
+                    {{-- แจ้งปัญหา (ตอน paid หรือ shipping) --}}
+                    @if (in_array($order->status, ['paid', 'shipping']))
                         <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#disputeModal{{ $order->id }}">แจ้งปัญหา</button>
                     @endif
 
@@ -111,7 +134,7 @@
 </div>
 
 {{-- Modal แจ้งปัญหา --}}
-@if ($order->status === 'paid')
+@if (in_array($order->status, ['paid', 'shipping']))
 <div class="modal fade" id="disputeModal{{ $order->id }}" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -128,6 +151,38 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
                     <button type="submit" class="btn btn-danger">ส่งแจ้งปัญหา</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
+
+{{-- Modal ยืนยันการส่งของ (ผู้ขาย) --}}
+@if ($order->status === 'paid' && $role === 'seller' && $order->seller_confirmed && !$order->is_shipped)
+<div class="modal fade" id="shipModal{{ $order->id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('orders.shipping', $order) }}" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title">ยืนยันการส่งของ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">หลักฐานการส่ง <span class="text-danger">*</span></label>
+                        <input type="file" name="shipping_proof" class="form-control" accept="image/*" required>
+                        <small class="text-muted">รูปพัสดุ หรือ ใบเสร็จส่งของ</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">เลขพัสดุ (ถ้ามี)</label>
+                        <input type="text" name="tracking_number" class="form-control" placeholder="เช่น TH1234567890">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+                    <button type="submit" class="btn btn-primary">ยืนยันการส่ง</button>
                 </div>
             </form>
         </div>

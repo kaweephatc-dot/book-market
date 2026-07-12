@@ -88,7 +88,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/orders/{order}/accept', [OrderController::class, 'accept'])->name('orders.accept');
     Route::post('/orders/{order}/slip', [OrderController::class, 'uploadSlip'])->name('orders.slip');
     Route::post('/orders/{order}/confirm-payment', [OrderController::class, 'confirmPayment'])->name('orders.confirmPayment');
-    Route::post('/orders/{order}/complete', [OrderController::class, 'confirmComplete'])->name('orders.complete');
+    Route::post('/orders/{order}/shipping', [OrderController::class, 'confirmShipping'])->name('orders.shipping');
+    Route::post('/orders/{order}/received', [OrderController::class, 'confirmReceived'])->name('orders.received');
     Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
     Route::post('/orders/{order}/dispute', [OrderController::class, 'dispute'])->name('orders.dispute');
 });

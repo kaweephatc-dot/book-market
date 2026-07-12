@@ -18,6 +18,9 @@ class Order extends Model
         'buyer_confirmed',
         'seller_confirmed',
         'dispute_reason',
+        'shipping_proof',
+        'tracking_number',
+        'is_shipped',
     ];
 
     // หนังสือที่สั่งซื้อ
@@ -39,12 +42,16 @@ class Order extends Model
     }
 
     // แปลงสถานะเป็นข้อความไทย + สี (ไว้แสดงบนหน้าเว็บ)
+    // แปลงสถานะเป็นข้อความไทย + สี (ไว้แสดงบนหน้าเว็บ)
     public function statusInfo()
     {
         return match($this->status) {
             'pending'   => ['label' => 'รอผู้ขายรับออเดอร์', 'color' => 'warning'],
-            'accepted'  => ['label' => 'รอโอนเงิน/แนบสลิป', 'color' => 'info'],
-            'paid'      => ['label' => 'ผู้ขายยืนยันรับเงินแล้ว', 'color' => 'primary'],
+            'accepted'  => ['label' => 'รอผู้ซื้อโอนเงิน/แนบสลิป', 'color' => 'info'],
+            'paid'      => ['label' => $this->slip_image && !$this->seller_confirmed
+                                ? 'รอผู้ขายยืนยันสลิป'
+                                : 'รอผู้ขายส่งของ', 'color' => 'primary'],
+            'shipping'  => ['label' => 'กำลังจัดส่งหนังสือ', 'color' => 'info'],
             'completed' => ['label' => 'เสร็จสิ้น', 'color' => 'success'],
             'cancelled' => ['label' => 'ยกเลิก', 'color' => 'secondary'],
             'disputed'  => ['label' => 'มีปัญหา (รอตรวจสอบ)', 'color' => 'danger'],

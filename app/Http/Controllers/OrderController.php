@@ -95,46 +95,83 @@ class OrderController extends Controller
         }
 
         $path = $request->file('slip')->store('slips', 'public');
-        $order->update(['slip_image' => $path]);
+        $order->update([
+            'slip_image' => $path,
+            'status' => 'paid',
+        ]);
 
         return back()->with('success', 'แนบสลิปแล้ว รอผู้ขายยืนยัน');
     }
 
-    // ผู้ขายยืนยันรับเงิน
+    // ผู้ขายยืนยันสลิป (ตรวจแล้วว่าโอนจริง)
     public function confirmPayment(Order $order)
     {
         if ($order->seller_id !== Auth::id()) {
             abort(403);
         }
 
-        $order->update(['status' => 'paid']);
-        return back()->with('success', 'ยืนยันรับเงินแล้ว');
+        if ($order->status !== 'paid' || !$order->slip_image) {
+            return back()->with('error', 'ยังไม่มีสลิปให้ยืนยัน');
+        }
+
+        // ยืนยันสลิปแล้ว แต่ยังไม่เปลี่ยนสถานะ (รอส่งของต่อ)
+        $order->update(['seller_confirmed' => true]);
+
+        return back()->with('success', 'ยืนยันสลิปแล้ว กรุณาส่งของและแนบหลักฐาน');
     }
 
-    // ยืนยันว่าซื้อขายเสร็จสมบูรณ์ (ทั้งสองฝ่ายต้องกด)
-    public function confirmComplete(Order $order)
+    // ผู้ขายยืนยันการส่งของ + แนบหลักฐาน
+    public function confirmShipping(Request $request, Order $order)
     {
-        $userId = Auth::id();
-
-        if ($order->buyer_id === $userId) {
-            $order->buyer_confirmed = true;
-        } elseif ($order->seller_id === $userId) {
-            $order->seller_confirmed = true;
-        } else {
+        if ($order->seller_id !== Auth::id()) {
             abort(403);
         }
 
-        // ถ้าทั้งสองฝ่ายยืนยันแล้ว → เสร็จสิ้น
-        if ($order->buyer_confirmed && $order->seller_confirmed) {
-            $order->status = 'completed';
-            // เปลี่ยนสถานะหนังสือเป็นขายแล้ว
-            $order->book->update([
-                'status' => $order->book->type === 'sale' ? 'sold' : 'exchanged',
-            ]);
+        // ต้องยืนยันสลิปก่อน (seller_confirmed) ถึงจะส่งได้
+        if ($order->status !== 'paid' || !$order->seller_confirmed) {
+            return back()->with('error', 'กรุณายืนยันสลิปก่อนส่งของ');
         }
 
-        $order->save();
-        return back()->with('success', 'ยืนยันแล้ว');
+        $request->validate([
+            'shipping_proof' => 'required|image|max:2048',
+            'tracking_number' => 'nullable|string|max:100',
+        ]);
+
+        $path = $request->file('shipping_proof')->store('shipping', 'public');
+
+        $order->update([
+            'shipping_proof' => $path,
+            'tracking_number' => $request->tracking_number,
+            'is_shipped' => true,
+            'status' => 'shipping',
+        ]);
+
+        return back()->with('success', 'ยืนยันการส่งของแล้ว รอผู้ซื้อยืนยันรับของ');
+    }
+
+    // ผู้ซื้อยืนยันได้รับของแล้ว
+    public function confirmReceived(Order $order)
+    {
+        if ($order->buyer_id !== Auth::id()) {
+            abort(403);
+        }
+
+        // ต้องอยู่สถานะกำลังจัดส่งก่อน
+        if ($order->status !== 'shipping') {
+            return back()->with('error', 'ผู้ขายยังไม่ได้ส่งของ');
+        }
+
+        $order->update([
+            'buyer_confirmed' => true,
+            'status' => 'completed',
+        ]);
+
+        // มาร์คหนังสือเป็นขายแล้ว
+        $order->book->update([
+            'status' => $order->book->type === 'sale' ? 'sold' : 'exchanged',
+        ]);
+
+        return back()->with('success', 'ยืนยันรับของแล้ว ขอบคุณที่ใช้บริการ!');
     }
 
     // ยกเลิกออเดอร์
