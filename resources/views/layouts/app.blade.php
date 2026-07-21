@@ -24,6 +24,11 @@
                             <a class="nav-link" href="{{ route('register') }}">สมัครสมาชิก</a>
                         </li>
                     @else
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('report-chat.index') }}">📨 ข้อความจากแอดมิน</a>
+                        </li>
+
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('books.create') }}">➕ ลงประกาศหนังสือ</a>
                         </li>

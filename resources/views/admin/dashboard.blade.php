@@ -71,4 +71,13 @@
         </div>
     </div>
 </div>
+
+<div class="col-md-4">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <h2 class="text-danger">{{ $stats['pending_reports'] }}</h2>
+                <p class="text-muted mb-0">รายงานรอตรวจสอบ</p>
+            </div>
+        </div>
+    </div>
 @endsection

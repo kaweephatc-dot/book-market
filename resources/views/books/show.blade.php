@@ -139,6 +139,12 @@
             <a href="{{ route('login') }}" class="btn btn-outline-primary w-100">เข้าสู่ระบบเพื่อติดต่อผู้ขาย</a>
         @endauth
 
+        @auth
+            @if (auth()->id() !== $book->user_id)
+                <button class="btn btn-link btn-sm text-danger w-100 mt-2" data-bs-toggle="modal" data-bs-target="#reportBookModal">🚩 รายงานหนังสือนี้</button>
+            @endif
+        @endauth
+
         <a href="{{ route('home') }}" class="btn btn-link w-100 mt-2">← กลับหน้าหลัก</a>
     </div>
 </div>
@@ -173,4 +179,45 @@
         document.getElementById('modalImage').src = this.src;
     });
 </script>
+
+    {{-- Modal รายงานหนังสือ --}}
+@auth
+@if (auth()->id() !== $book->user_id)
+<div class="modal fade" id="reportBookModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('report.book', $book) }}">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title">🚩 รายงานหนังสือ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">เหตุผล <span class="text-danger">*</span></label>
+                        <select name="reason" class="form-select" required>
+                            <option value="">-- เลือกเหตุผล --</option>
+                            <option value="เนื้อหาไม่เหมาะสม">เนื้อหาไม่เหมาะสม</option>
+                            <option value="สินค้าผิดกฎหมาย">สินค้าผิดกฎหมาย</option>
+                            <option value="หลอกลวง/ฉ้อโกง">หลอกลวง/ฉ้อโกง</option>
+                            <option value="ข้อมูลเท็จ">ข้อมูลเท็จ</option>
+                            <option value="ราคาไม่เหมาะสม">ราคาไม่เหมาะสม</option>
+                            <option value="อื่นๆ">อื่นๆ</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">รายละเอียดเพิ่มเติม</label>
+                        <textarea name="detail" class="form-control" rows="3" placeholder="อธิบายเพิ่มเติม (ไม่บังคับ)"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+                    <button type="submit" class="btn btn-danger">ส่งรายงาน</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
+@endauth
 @endsection

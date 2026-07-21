@@ -32,4 +32,10 @@ class Book extends Model
     {
         return $this->hasMany(BookImage::class);
     }
+
+    // รายงานที่หนังสือเล่มนี้ได้รับ
+    public function reports()
+    {
+        return $this->morphMany(Report::class, 'reportable');
+    }
 }

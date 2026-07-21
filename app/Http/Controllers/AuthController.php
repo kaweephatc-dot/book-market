@@ -50,12 +50,15 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($credentials)) {
-            // เช็คว่าถูกแบนไหม
-            if (Auth::user()->is_banned) {
+            // เช็คว่าถูกแบนอยู่ไหม (รวมเช็คแบนชั่วคราวหมดเวลา)
+            if (Auth::user()->isCurrentlyBanned()) {
+                $bannedUntil = Auth::user()->banned_until;
+                $message = $bannedUntil
+                    ? 'บัญชีถูกระงับถึง ' . $bannedUntil->format('d/m/Y H:i')
+                    : 'บัญชีของคุณถูกระงับถาวร';
+
                 Auth::logout();
-                return back()->withErrors([
-                    'email' => 'บัญชีของคุณถูกระงับการใช้งาน',
-                ])->onlyInput('email');
+                return back()->withErrors(['email' => $message])->onlyInput('email');
             }
 
             $request->session()->regenerate();

@@ -37,6 +37,12 @@
             </div>
         </div>
 
+        @auth
+            @if (auth()->id() !== $shop->id)
+                <button class="btn btn-link btn-sm text-danger mt-2" data-bs-toggle="modal" data-bs-target="#reportShopModal">🚩 รายงานร้านนี้</button>
+            @endif
+        @endauth
+
         {{-- ฟอร์มรีวิว (เฉพาะคนที่เคยแชท) --}}
         @auth
             @if ($canReview)
@@ -114,4 +120,44 @@
         </div>
     </div>
 </div>
+
+{{-- Modal รายงานร้าน --}}
+@auth
+@if (auth()->id() !== $shop->id)
+<div class="modal fade" id="reportShopModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('report.shop', $shop) }}">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title">🚩 รายงานร้าน</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">เหตุผล <span class="text-danger">*</span></label>
+                        <select name="reason" class="form-select" required>
+                            <option value="">-- เลือกเหตุผล --</option>
+                            <option value="หลอกลวง/ฉ้อโกง">หลอกลวง/ฉ้อโกง</option>
+                            <option value="พฤติกรรมไม่เหมาะสม">พฤติกรรมไม่เหมาะสม</option>
+                            <option value="ขายสินค้าผิดกฎหมาย">ขายสินค้าผิดกฎหมาย</option>
+                            <option value="ข้อมูลร้านเป็นเท็จ">ข้อมูลร้านเป็นเท็จ</option>
+                            <option value="อื่นๆ">อื่นๆ</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">รายละเอียดเพิ่มเติม</label>
+                        <textarea name="detail" class="form-control" rows="3" placeholder="อธิบายเพิ่มเติม (ไม่บังคับ)"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+                    <button type="submit" class="btn btn-danger">ส่งรายงาน</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
+@endauth
 @endsection

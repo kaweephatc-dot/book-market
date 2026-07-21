@@ -8,6 +8,9 @@ use App\Models\Book;
 use App\Models\Order;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Report;
+use App\Models\ReportChat;
+use App\Models\ReportMessage;
 
 class AdminController extends Controller
 {
@@ -23,6 +26,7 @@ class AdminController extends Controller
             'banned_users' => User::where('is_banned', true)->count(),
             'total_orders' => Order::count(),
             'disputed_orders' => Order::where('status', 'disputed')->count(),
+            'pending_reports' => Report::where('status', 'pending')->count(),
         ];
 
         return view('admin.dashboard', compact('stats'));
@@ -121,5 +125,131 @@ class AdminController extends Controller
         }
 
         return back()->with('success', 'จัดการข้อพิพาทเรียบร้อยแล้ว');
+    }
+
+
+    // หน้าจัดการรายงาน
+    public function reports()
+    {
+        $pendingReports = Report::with(['reporter', 'reportable'])
+            ->where('status', 'pending')
+            ->latest()
+            ->get();
+
+        $resolvedReports = Report::with(['reporter', 'reportable'])
+            ->where('status', '!=', 'pending')
+            ->latest()
+            ->paginate(15);
+
+        return view('admin.reports', compact('pendingReports', 'resolvedReports'));
+    }
+
+    // ปิดเรื่อง (ไม่ทำอะไร - รายงานไม่มีมูล)
+    public function dismissReport(Report $report)
+    {
+        $report->update(['status' => 'dismissed']);
+        return back()->with('success', 'ปิดเรื่องรายงานแล้ว');
+    }
+
+    // จัดการแล้ว (ทำการลบ/แบนไปแล้ว)
+    public function resolveReport(Report $report)
+    {
+        $report->update(['status' => 'resolved']);
+        return back()->with('success', 'ทำเครื่องหมายว่าจัดการแล้ว');
+    }
+
+    // เปิด (หรือเข้า) ห้องแชทรายงาน กับร้านหรือผู้รายงาน
+    public function openReportChat(Report $report, User $user)
+    {
+        // หาห้องแชทเดิม หรือสร้างใหม่
+        $chat = ReportChat::firstOrCreate([
+            'report_id' => $report->id,
+            'user_id' => $user->id,
+        ]);
+
+        $chat->load(['messages.user', 'user', 'report']);
+
+        return view('admin.report-chat', compact('chat'));
+    }
+
+    // admin ส่งข้อความในแชทรายงาน
+    public function sendReportMessage(Request $request, ReportChat $chat)
+    {
+        if ($chat->is_closed) {
+            return back()->with('error', 'แชทนี้ถูกปิดแล้ว');
+        }
+
+        $request->validate([
+            'message' => 'required|string|max:1000',
+        ]);
+
+        ReportMessage::create([
+            'report_chat_id' => $chat->id,
+            'user_id' => Auth::id(),
+            'message' => $request->message,
+        ]);
+
+        return back();
+    }
+
+    // ปิดแชท (อีกฝ่ายส่งข้อความไม่ได้ แต่ยังดูได้)
+    public function closeReportChat(ReportChat $chat)
+    {
+        $chat->update(['is_closed' => true]);
+        return back()->with('success', 'ปิดแชทแล้ว');
+    }
+
+    // เปิดแชทที่ปิดไปให้กลับมาใช้ได้อีก
+    public function reopenReportChat(ReportChat $chat)
+    {
+        $chat->update(['is_closed' => false]);
+        return back()->with('success', 'เปิดแชทอีกครั้งแล้ว');
+    }
+
+    // ลบแชททิ้ง
+    public function deleteReportChat(ReportChat $chat)
+    {
+        $chat->delete(); // ข้อความลบตามอัตโนมัติ (cascade)
+        return back()->with('success', 'ลบแชทแล้ว');
+    }
+
+    // แบนผู้ใช้ (เลือกถาวร/ชั่วคราว)
+    public function banUser(Request $request, User $user)
+    {
+        if ($user->is_admin) {
+            return back()->with('error', 'ไม่สามารถแบนผู้ดูแลระบบได้');
+        }
+
+        $request->validate([
+            'ban_type' => 'required|in:permanent,temporary',
+            'days' => 'required_if:ban_type,temporary|nullable|integer|min:1',
+        ]);
+
+        $bannedUntil = null;
+        if ($request->ban_type === 'temporary') {
+            $bannedUntil = now()->addDays((int) $request->days);
+        }
+
+        $user->update([
+            'is_banned' => true,
+            'banned_until' => $bannedUntil,
+        ]);
+
+        $msg = $request->ban_type === 'permanent'
+            ? 'แบนถาวรแล้ว'
+            : "แบนชั่วคราว {$request->days} วันแล้ว";
+
+        return back()->with('success', $msg);
+    }
+
+    // ปลดแบน
+    public function unbanUser(User $user)
+    {
+        $user->update([
+            'is_banned' => false,
+            'banned_until' => null,
+        ]);
+
+        return back()->with('success', 'ปลดแบนแล้ว');
     }
 }

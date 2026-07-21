@@ -15,8 +15,8 @@
                 <a href="{{ route('admin.dashboard') }}" class="btn btn-sm btn-outline-light">Dashboard</a>
                 <a href="{{ route('admin.users') }}" class="btn btn-sm btn-outline-light">ผู้ใช้</a>
                 <a href="{{ route('admin.books') }}" class="btn btn-sm btn-outline-light">หนังสือ</a>
-                <a href="{{ route('admin.orders') }}" class="btn btn-sm btn-outline-light">คำสั่งซื้อ</a>
                 <a href="{{ route('home') }}" class="btn btn-sm btn-outline-light">กลับหน้าเว็บ</a>
+                <a href="{{ route('admin.reports') }}" class="btn btn-sm btn-outline-light">รายงาน</a>
             </div>
         </div>
     </nav>

@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReportChatController;
 
 // หน้าสมัครสมาชิก
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
@@ -40,6 +42,20 @@ Route::get('/', [BookController::class, 'index'])->name('home');
         // จัดการคำสั่งซื้อ
         Route::get('/orders', [AdminController::class, 'orders'])->name('admin.orders');
         Route::post('/orders/{order}/resolve', [AdminController::class, 'resolveDispute'])->name('admin.orders.resolve');
+
+        // จัดการรายงาน
+        Route::get('/reports', [AdminController::class, 'reports'])->name('admin.reports');
+        Route::post('/reports/{report}/resolve', [AdminController::class, 'resolveReport'])->name('admin.reports.resolve');
+        Route::post('/reports/{report}/dismiss', [AdminController::class, 'dismissReport'])->name('admin.reports.dismiss');
+
+        // แชทรายงาน + แบนขั้นสูง (admin)
+        Route::get('/report/{report}/chat/{user}', [AdminController::class, 'openReportChat'])->name('admin.report.chat');
+        Route::post('/report-chat/{chat}/send', [AdminController::class, 'sendReportMessage'])->name('admin.report.chat.send');
+        Route::post('/report-chat/{chat}/close', [AdminController::class, 'closeReportChat'])->name('admin.report.chat.close');
+        Route::post('/report-chat/{chat}/reopen', [AdminController::class, 'reopenReportChat'])->name('admin.report.chat.reopen');
+        Route::delete('/report-chat/{chat}', [AdminController::class, 'deleteReportChat'])->name('admin.report.chat.delete');
+        Route::post('/users/{user}/ban-advanced', [AdminController::class, 'banUser'])->name('admin.users.banAdvanced');
+        Route::post('/users/{user}/unban', [AdminController::class, 'unbanUser'])->name('admin.users.unban');
     });
 
 // ==== ต้อง login ก่อน ====
@@ -50,6 +66,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/books/create', [BookController::class, 'create'])->name('books.create');
         Route::post('/books', [BookController::class, 'store'])->name('books.store');
     });
+
+    // รายงานโพสต์
+    Route::post('/report/book/{book}', [ReportController::class, 'reportBook'])->name('report.book');
+    Route::post('/report/shop/{shop}', [ReportController::class, 'reportShop'])->name('report.shop');
 
     // โปรไฟล์
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
@@ -92,6 +112,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/orders/{order}/received', [OrderController::class, 'confirmReceived'])->name('orders.received');
     Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
     Route::post('/orders/{order}/dispute', [OrderController::class, 'dispute'])->name('orders.dispute');
+
+    // แชทรายงาน (ฝั่งผู้ใช้)
+    Route::get('/report-chats', [ReportChatController::class, 'index'])->name('report-chat.index');
+    Route::get('/report-chats/{chat}', [ReportChatController::class, 'show'])->name('report-chat.show');
+    Route::post('/report-chats/{chat}/send', [ReportChatController::class, 'send'])->name('report-chat.send');
 });
 
 // ดูรายละเอียดหนังสือ (ทุกคนดูได้)

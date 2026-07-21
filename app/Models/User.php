@@ -29,6 +29,7 @@ class User extends Authenticatable
         'is_shop',
         'is_admin',
         'is_banned',
+        'banned_until',
     ];
 
     /**
@@ -51,6 +52,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'banned_until' => 'datetime',
         ];
     }
     // ช่องทางการชำระเงินทั้งหมดของผู้ใช้คนนี้
@@ -99,5 +101,39 @@ class User extends Authenticatable
     public function ordersAsSeller()
     {
         return $this->hasMany(Order::class, 'seller_id');
+    }
+
+    // รายงานที่ร้านนี้ได้รับ
+    public function reports()
+    {
+        return $this->morphMany(Report::class, 'reportable');
+    }
+
+    // เช็คว่าถูกแบนอยู่จริงไหม (รวมเช็คว่าแบนชั่วคราวหมดเวลาหรือยัง)
+    public function isCurrentlyBanned()
+    {
+        if (!$this->is_banned) {
+            return false;
+        }
+
+        // แบนถาวร (ไม่มีวันปลด)
+        if ($this->banned_until === null) {
+            return true;
+        }
+
+        // แบนชั่วคราว - เช็คว่าหมดเวลาหรือยัง
+        if (now()->greaterThanOrEqualTo($this->banned_until)) {
+            // หมดเวลาแล้ว → ปลดแบนอัตโนมัติ
+            $this->update(['is_banned' => false, 'banned_until' => null]);
+            return false;
+        }
+
+        return true;
+    }
+
+    // แชทรายงานที่ผู้ใช้คนนี้เป็นคู่สนทนา
+    public function reportChats()
+    {
+        return $this->hasMany(ReportChat::class);
     }
 }
