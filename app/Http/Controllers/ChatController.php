@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Events\MessageSent;
 use App\Models\Book;
 use App\Models\Conversation;
 use Illuminate\Support\Facades\Auth;
@@ -91,7 +92,7 @@ class ChatController extends Controller
             'message' => 'required|string|max:1000',
         ]);
 
-        $conversation->messages()->create([
+        $message = $conversation->messages()->create([
             'user_id' => $userId,
             'message' => $request->message,
         ]);
@@ -99,6 +100,40 @@ class ChatController extends Controller
         // อัปเดตเวลาของห้องแชท (ให้ขึ้นไปอยู่บนสุดในรายการ)
         $conversation->touch();
 
-        return redirect()->route('chat.show', $conversation);
+        $message->load('user');
+
+        $recipientId = $conversation->buyer_id === $userId
+            ? $conversation->seller_id
+            : $conversation->buyer_id;
+
+        broadcast(new MessageSent($message, $recipientId))->toOthers();
+
+        return response()->json([
+            'message' => [
+                'id' => $message->id,
+                'conversation_id' => $message->conversation_id,
+                'user_id' => $message->user_id,
+                'user_name' => $message->user->name,
+                'message' => $message->message,
+                'created_at' => $message->created_at->format('H:i'),
+            ],
+        ]);
+    }
+
+    // มาร์คข้อความว่าอ่านแล้ว (เรียกจาก JS ตอนยังเปิดหน้าแชทอยู่แล้วมีข้อความใหม่เข้ามา)
+    public function markRead(Conversation $conversation)
+    {
+        $userId = Auth::id();
+
+        if ($conversation->buyer_id !== $userId && $conversation->seller_id !== $userId) {
+            abort(403);
+        }
+
+        $conversation->messages()
+            ->where('user_id', '!=', $userId)
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
+
+        return response()->json(['ok' => true]);
     }
 }

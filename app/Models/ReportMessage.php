@@ -13,6 +13,7 @@ class ReportMessage extends Model
         'report_chat_id',
         'user_id',
         'message',
+        'is_read',
     ];
 
     // แชทที่ข้อความนี้อยู่

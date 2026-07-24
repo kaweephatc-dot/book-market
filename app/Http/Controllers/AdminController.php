@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Events\ReportMessageSent;
 use App\Models\User;
 use App\Models\Book;
 use App\Models\Order;
@@ -167,6 +168,12 @@ class AdminController extends Controller
             'user_id' => $user->id,
         ]);
 
+        // มาร์คข้อความที่ฝ่ายผู้ใช้ (ไม่ใช่แอดมิน) ส่งมาว่าอ่านแล้ว
+        $chat->messages()
+            ->where('user_id', $chat->user_id)
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
+
         $chat->load(['messages.user', 'user', 'report']);
 
         return view('admin.report-chat', compact('chat'));
@@ -176,20 +183,45 @@ class AdminController extends Controller
     public function sendReportMessage(Request $request, ReportChat $chat)
     {
         if ($chat->is_closed) {
-            return back()->with('error', 'แชทนี้ถูกปิดแล้ว');
+            return response()->json(['error' => 'แชทนี้ถูกปิดแล้ว'], 409);
         }
 
         $request->validate([
             'message' => 'required|string|max:1000',
         ]);
 
-        ReportMessage::create([
+        $message = ReportMessage::create([
             'report_chat_id' => $chat->id,
             'user_id' => Auth::id(),
             'message' => $request->message,
         ]);
 
-        return back();
+        $message->load(['user', 'reportChat']);
+
+        broadcast(new ReportMessageSent($message))->toOthers();
+
+        return response()->json([
+            'message' => [
+                'id' => $message->id,
+                'report_chat_id' => $message->report_chat_id,
+                'user_id' => $message->user_id,
+                'user_name' => $message->user->name,
+                'message' => $message->message,
+                'created_at' => $message->created_at->format('H:i'),
+                'is_admin_sender' => (bool) $message->user->is_admin,
+            ],
+        ]);
+    }
+
+    // มาร์คข้อความว่าอ่านแล้ว (เรียกจาก JS ตอนแอดมินยังเปิดหน้าแชทอยู่แล้วมีข้อความใหม่เข้ามา)
+    public function markReportChatRead(ReportChat $chat)
+    {
+        $chat->messages()
+            ->where('user_id', $chat->user_id)
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
+
+        return response()->json(['ok' => true]);
     }
 
     // ปิดแชท (อีกฝ่ายส่งข้อความไม่ได้ แต่ยังดูได้)

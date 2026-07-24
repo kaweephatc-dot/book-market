@@ -1,0 +1,59 @@
+function bumpBadge(badge) {
+    const count = (parseInt(badge.textContent, 10) || 0) + 1;
+    badge.textContent = count > 99 ? '99+' : count;
+    badge.classList.remove('d-none');
+    return count;
+}
+
+function isViewingChannel(channel) {
+    return window.__activeChatChannel === channel;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (!window.Echo) {
+        return;
+    }
+
+    const container = document.querySelector('[data-current-user-id]');
+
+    if (container) {
+        const userId = container.dataset.currentUserId;
+        const personalChannel = window.Echo.private('chat-user.' + userId);
+
+        // ตัวเลขแดงข้อความแชทซื้อขาย (สำหรับผู้ใช้ทั่วไป)
+        const chatBadge = document.getElementById('chatUnreadBadge');
+        if (chatBadge) {
+            personalChannel.listen('.message.sent', (payload) => {
+                if (isViewingChannel('chat.' + payload.conversation_id)) {
+                    return;
+                }
+
+                bumpBadge(chatBadge);
+            });
+        }
+
+        // ตัวเลขแดงข้อความจากแอดมิน (สำหรับผู้ใช้ทั่วไป)
+        const reportMessageBadge = document.getElementById('reportMessageUnreadBadge');
+        if (reportMessageBadge) {
+            personalChannel.listen('.report-message.sent', (payload) => {
+                if (isViewingChannel('report-chat.' + payload.report_chat_id)) {
+                    return;
+                }
+
+                bumpBadge(reportMessageBadge);
+            });
+        }
+    }
+
+    // ตัวเลขแดงข้อความแชทรายงาน (สำหรับแอดมิน)
+    const reportBadge = document.getElementById('reportUnreadBadge');
+    if (reportBadge) {
+        window.Echo.private('admin-notifications').listen('.report-message.sent', (payload) => {
+            if (isViewingChannel('report-chat.' + payload.report_chat_id)) {
+                return;
+            }
+
+            bumpBadge(reportBadge);
+        });
+    }
+});

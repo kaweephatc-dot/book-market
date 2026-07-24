@@ -50,7 +50,12 @@
         @endif
 
         {{-- กล่องข้อความ --}}
-        <div class="card">
+        <div class="card" data-chat-root
+             data-channel="chat.{{ $conversation->id }}"
+             data-event="message.sent"
+             data-current-user-id="{{ auth()->id() }}"
+             data-viewer-role="buyer-seller"
+             data-read-url="{{ route('chat.read', $conversation) }}">
             <div class="card-body" id="chatBox" style="height: 400px; overflow-y: auto;">
                 @forelse ($conversation->messages as $message)
                     @php $isMe = $message->user_id === auth()->id(); @endphp
@@ -63,13 +68,13 @@
                         </div>
                     </div>
                 @empty
-                    <div class="text-center text-muted py-5">เริ่มการสนทนาได้เลย</div>
+                    <div class="text-center text-muted py-5" data-chat-empty>เริ่มการสนทนาได้เลย</div>
                 @endforelse
             </div>
 
             {{-- ฟอร์มส่งข้อความ --}}
             <div class="card-footer">
-                <form method="POST" action="{{ route('chat.send', $conversation) }}" class="d-flex gap-2">
+                <form method="POST" action="{{ route('chat.send', $conversation) }}" class="d-flex gap-2" data-chat-form>
                     @csrf
                     <input type="text" name="message" class="form-control" placeholder="พิมพ์ข้อความ..." required autofocus>
                     <button type="submit" class="btn btn-primary">ส่ง</button>
@@ -80,10 +85,4 @@
         <a href="{{ route('chat.index') }}" class="btn btn-link mt-2">← กลับไปรายการแชท</a>
     </div>
 </div>
-
-<script>
-    // เลื่อนไปข้อความล่าสุดอัตโนมัติ
-    const chatBox = document.getElementById('chatBox');
-    chatBox.scrollTop = chatBox.scrollHeight;
-</script>
 @endsection

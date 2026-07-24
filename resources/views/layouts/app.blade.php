@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'ตลาดหนังสือมือสอง')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    @vite(['resources/js/app.js'])
 </head>
 <body>
 
@@ -26,7 +27,12 @@
                     @else
 
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('report-chat.index') }}">📨 ข้อความจากแอดมิน</a>
+                            <a class="nav-link position-relative" href="{{ route('report-chat.index') }}">
+                                📨 ข้อความจากแอดมิน
+                                <span id="reportMessageUnreadBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger {{ (($unreadReportMessageCount ?? 0) > 0) ? '' : 'd-none' }}" style="font-size: 10px;">
+                                    {{ (($unreadReportMessageCount ?? 0) > 99) ? '99+' : ($unreadReportMessageCount ?? 0) }}
+                                </span>
+                            </a>
                         </li>
 
                         <li class="nav-item">
@@ -35,14 +41,12 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('books.my') }}">📚 หนังสือของฉัน</a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item" data-current-user-id="{{ auth()->id() }}">
                             <a class="nav-link position-relative" href="{{ route('chat.index') }}">
                                 💬 ข้อความ
-                                @if (isset($unreadMessageCount) && $unreadMessageCount > 0)
-                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px;">
-                                        {{ $unreadMessageCount > 99 ? '99+' : $unreadMessageCount }}
-                                    </span>
-                                @endif
+                                <span id="chatUnreadBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger {{ (isset($unreadMessageCount) && $unreadMessageCount > 0) ? '' : 'd-none' }}" style="font-size: 10px;">
+                                    {{ isset($unreadMessageCount) && $unreadMessageCount > 99 ? '99+' : ($unreadMessageCount ?? 0) }}
+                                </span>
                             </a>
                         </li>
                         <li class="nav-item">

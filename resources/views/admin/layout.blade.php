@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - @yield('title')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    @vite(['resources/js/app.js'])
 </head>
 <body class="bg-light">
 
@@ -16,7 +17,12 @@
                 <a href="{{ route('admin.users') }}" class="btn btn-sm btn-outline-light">ผู้ใช้</a>
                 <a href="{{ route('admin.books') }}" class="btn btn-sm btn-outline-light">หนังสือ</a>
                 <a href="{{ route('home') }}" class="btn btn-sm btn-outline-light">กลับหน้าเว็บ</a>
-                <a href="{{ route('admin.reports') }}" class="btn btn-sm btn-outline-light">รายงาน</a>
+                <a href="{{ route('admin.reports') }}" class="btn btn-sm btn-outline-light position-relative">
+                    รายงาน
+                    <span id="reportUnreadBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger {{ (($unreadReportCount ?? 0) > 0) ? '' : 'd-none' }}" style="font-size: 10px;">
+                        {{ (($unreadReportCount ?? 0) > 99) ? '99+' : ($unreadReportCount ?? 0) }}
+                    </span>
+                </a>
             </div>
         </div>
     </nav>

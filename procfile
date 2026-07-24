@@ -1,1 +1,6 @@
 web: php artisan serve --host=0.0.0.0 --port=$PORT
+# reverb: php artisan reverb:start --host=0.0.0.0 --port=$PORT
+# หมายเหตุ: บรรทัด reverb ด้านบนเป็นเอกสารไว้ก่อน ยังไม่ deploy จริง
+# nixpacks.toml's [start] cmd เป็นตัวคุม start command จริงบน Railway ไม่ใช่ไฟล์นี้
+# เมื่อจะ deploy Reverb จริง ต้องสร้าง Railway service ที่สองจาก repo เดียวกัน (ทำด้วยมือใน dashboard)
+# แล้ว override start command ของ service นั้นเป็นคำสั่ง reverb ด้านบน พร้อมตั้ง public domain ให้ service นั้น

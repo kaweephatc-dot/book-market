@@ -51,6 +51,7 @@ Route::get('/', [BookController::class, 'index'])->name('home');
         // แชทรายงาน + แบนขั้นสูง (admin)
         Route::get('/report/{report}/chat/{user}', [AdminController::class, 'openReportChat'])->name('admin.report.chat');
         Route::post('/report-chat/{chat}/send', [AdminController::class, 'sendReportMessage'])->name('admin.report.chat.send');
+        Route::post('/report-chat/{chat}/read', [AdminController::class, 'markReportChatRead'])->name('admin.report.chat.read');
         Route::post('/report-chat/{chat}/close', [AdminController::class, 'closeReportChat'])->name('admin.report.chat.close');
         Route::post('/report-chat/{chat}/reopen', [AdminController::class, 'reopenReportChat'])->name('admin.report.chat.reopen');
         Route::delete('/report-chat/{chat}', [AdminController::class, 'deleteReportChat'])->name('admin.report.chat.delete');
@@ -92,6 +93,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/chat/start/{book}', [ChatController::class, 'start'])->name('chat.start');
     Route::get('/chat/{conversation}', [ChatController::class, 'show'])->name('chat.show');
     Route::post('/chat/{conversation}/send', [ChatController::class, 'sendMessage'])->name('chat.send');
+    Route::post('/chat/{conversation}/read', [ChatController::class, 'markRead'])->name('chat.read');
 
     // ช่องทางการชำระเงิน
     Route::get('/payment', [PaymentController::class, 'index'])->name('payment.index');
@@ -117,6 +119,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/report-chats', [ReportChatController::class, 'index'])->name('report-chat.index');
     Route::get('/report-chats/{chat}', [ReportChatController::class, 'show'])->name('report-chat.show');
     Route::post('/report-chats/{chat}/send', [ReportChatController::class, 'send'])->name('report-chat.send');
+    Route::post('/report-chats/{chat}/read', [ReportChatController::class, 'markRead'])->name('report-chat.read');
 });
 
 // ดูรายละเอียดหนังสือ (ทุกคนดูได้)

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Events\ReportMessageSent;
 use App\Models\ReportChat;
 use App\Models\ReportMessage;
 use Illuminate\Support\Facades\Auth;
@@ -28,6 +29,12 @@ class ReportChatController extends Controller
             abort(403);
         }
 
+        // มาร์คข้อความที่แอดมินส่งมาว่าอ่านแล้ว
+        $chat->messages()
+            ->where('user_id', '!=', Auth::id())
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
+
         $chat->load(['messages.user', 'report']);
 
         return view('report-chat.show', compact('chat'));
@@ -41,19 +48,48 @@ class ReportChatController extends Controller
         }
 
         if ($chat->is_closed) {
-            return back()->with('error', 'แชทนี้ถูกปิดแล้ว ไม่สามารถส่งข้อความได้');
+            return response()->json(['error' => 'แชทนี้ถูกปิดแล้ว ไม่สามารถส่งข้อความได้'], 409);
         }
 
         $request->validate([
             'message' => 'required|string|max:1000',
         ]);
 
-        ReportMessage::create([
+        $message = ReportMessage::create([
             'report_chat_id' => $chat->id,
             'user_id' => Auth::id(),
             'message' => $request->message,
         ]);
 
-        return back();
+        $message->load(['user', 'reportChat']);
+
+        broadcast(new ReportMessageSent($message))->toOthers();
+
+        return response()->json([
+            'message' => [
+                'id' => $message->id,
+                'report_chat_id' => $message->report_chat_id,
+                'user_id' => $message->user_id,
+                'user_name' => $message->user->name,
+                'message' => $message->message,
+                'created_at' => $message->created_at->format('H:i'),
+                'is_admin_sender' => (bool) $message->user->is_admin,
+            ],
+        ]);
+    }
+
+    // มาร์คข้อความว่าอ่านแล้ว (เรียกจาก JS ตอนยังเปิดหน้าแชทอยู่แล้วมีข้อความใหม่เข้ามา)
+    public function markRead(ReportChat $chat)
+    {
+        if ($chat->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $chat->messages()
+            ->where('user_id', '!=', Auth::id())
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
+
+        return response()->json(['ok' => true]);
     }
 }

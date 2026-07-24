@@ -13,7 +13,12 @@
     <strong>เรื่อง:</strong> {{ $chat->report->reason }}
 </div>
 
-<div class="card">
+<div class="card" data-chat-root
+     data-channel="report-chat.{{ $chat->id }}"
+     data-event="report-message.sent"
+     data-current-user-id="{{ auth()->id() }}"
+     data-viewer-role="report-user"
+     data-read-url="{{ route('report-chat.read', $chat) }}">
     <div class="card-body" style="height: 400px; overflow-y: auto;" id="chatBox">
         @forelse ($chat->messages as $msg)
             <div class="mb-2 d-flex {{ $msg->user_id === auth()->id() ? 'justify-content-end' : 'justify-content-start' }}">
@@ -24,7 +29,7 @@
                 </div>
             </div>
         @empty
-            <p class="text-muted text-center">ยังไม่มีข้อความ</p>
+            <p class="text-muted text-center" data-chat-empty>ยังไม่มีข้อความ</p>
         @endforelse
     </div>
 
@@ -32,7 +37,7 @@
         @if ($chat->is_closed)
             <div class="text-muted text-center small">แชทนี้ถูกปิดแล้ว ไม่สามารถส่งข้อความได้</div>
         @else
-            <form method="POST" action="{{ route('report-chat.send', $chat) }}" class="d-flex gap-2">
+            <form method="POST" action="{{ route('report-chat.send', $chat) }}" class="d-flex gap-2" data-chat-form>
                 @csrf
                 <input type="text" name="message" class="form-control" placeholder="พิมพ์ข้อความ..." required autofocus>
                 <button type="submit" class="btn btn-primary">ส่ง</button>
@@ -40,9 +45,4 @@
         @endif
     </div>
 </div>
-
-<script>
-    const chatBox = document.getElementById('chatBox');
-    chatBox.scrollTop = chatBox.scrollHeight;
-</script>
 @endsection
