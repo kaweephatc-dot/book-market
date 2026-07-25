@@ -19,6 +19,12 @@
                 <a href="{{ route('home') }}" class="btn btn-sm btn-outline-light">กลับหน้าเว็บ</a>
                 <a href="{{ route('admin.reports') }}" class="btn btn-sm btn-outline-light position-relative">
                     รายงาน
+                    <span id="newReportsBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger {{ (($unseenReportCount ?? 0) > 0) ? '' : 'd-none' }}" style="font-size: 10px;">
+                        {{ (($unseenReportCount ?? 0) > 99) ? '99+' : ($unseenReportCount ?? 0) }}
+                    </span>
+                </a>
+                <a href="{{ route('admin.report-chats.index') }}" class="btn btn-sm btn-outline-light position-relative">
+                    💬 แชทผู้รายงาน
                     <span id="reportUnreadBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger {{ (($unreadReportCount ?? 0) > 0) ? '' : 'd-none' }}" style="font-size: 10px;">
                         {{ (($unreadReportCount ?? 0) > 99) ? '99+' : ($unreadReportCount ?? 0) }}
                     </span>

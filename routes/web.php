@@ -49,6 +49,7 @@ Route::get('/', [BookController::class, 'index'])->name('home');
         Route::post('/reports/{report}/dismiss', [AdminController::class, 'dismissReport'])->name('admin.reports.dismiss');
 
         // แชทรายงาน + แบนขั้นสูง (admin)
+        Route::get('/report-chats', [AdminController::class, 'reportChats'])->name('admin.report-chats.index');
         Route::get('/report/{report}/chat/{user}', [AdminController::class, 'openReportChat'])->name('admin.report.chat');
         Route::post('/report-chat/{chat}/send', [AdminController::class, 'sendReportMessage'])->name('admin.report.chat.send');
         Route::post('/report-chat/{chat}/read', [AdminController::class, 'markReportChatRead'])->name('admin.report.chat.read');
@@ -62,8 +63,8 @@ Route::get('/', [BookController::class, 'index'])->name('home');
 // ==== ต้อง login ก่อน ====
 Route::middleware('auth')->group(function () {
 
-    // ลงประกาศหนังสือ (ต้องเป็นร้านก่อน)
-    Route::middleware('shop')->group(function () {
+    // ลงประกาศหนังสือ (ต้องเป็นร้านก่อน และห้ามแอดมิน)
+    Route::middleware(['shop', 'not.admin'])->group(function () {
         Route::get('/books/create', [BookController::class, 'create'])->name('books.create');
         Route::post('/books', [BookController::class, 'store'])->name('books.store');
     });
@@ -77,43 +78,53 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
-    // สมัครร้านค้า
-    Route::get('/shop/register', [ProfileController::class, 'showRegisterShop'])->name('shop.register');
-    Route::post('/shop/register', [ProfileController::class, 'registerShop'])->name('shop.register.submit');
+    // สมัครร้านค้า (ห้ามแอดมิน)
+    Route::middleware('not.admin')->group(function () {
+        Route::get('/shop/register', [ProfileController::class, 'showRegisterShop'])->name('shop.register');
+        Route::post('/shop/register', [ProfileController::class, 'registerShop'])->name('shop.register.submit');
+    });
 
     // จัดการหนังสือของฉัน
     Route::get('/my-books', [BookController::class, 'myBooks'])->name('books.my');
-    Route::get('/books/{book}/edit', [BookController::class, 'edit'])->name('books.edit');
-    Route::put('/books/{book}', [BookController::class, 'update'])->name('books.update');
-    Route::delete('/books/{book}', [BookController::class, 'destroy'])->name('books.destroy');
-    Route::post('/books/{book}/mark-sold', [BookController::class, 'markAsSold'])->name('books.markSold');
+    Route::get('/books/{book}/edit', [BookController::class, 'edit'])->name('books.edit')->middleware('not.admin');
+    Route::put('/books/{book}', [BookController::class, 'update'])->name('books.update')->middleware('not.admin');
+    Route::delete('/books/{book}', [BookController::class, 'destroy'])->name('books.destroy')->middleware('not.admin');
+    Route::post('/books/{book}/mark-sold', [BookController::class, 'markAsSold'])->name('books.markSold')->middleware('not.admin');
 
-    // ระบบแชท
-    Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
-    Route::get('/chat/start/{book}', [ChatController::class, 'start'])->name('chat.start');
-    Route::get('/chat/{conversation}', [ChatController::class, 'show'])->name('chat.show');
-    Route::post('/chat/{conversation}/send', [ChatController::class, 'sendMessage'])->name('chat.send');
-    Route::post('/chat/{conversation}/read', [ChatController::class, 'markRead'])->name('chat.read');
+    // ระบบแชท (ห้ามแอดมิน)
+    Route::middleware('not.admin')->group(function () {
+        Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+        Route::get('/chat/start/{book}', [ChatController::class, 'start'])->name('chat.start');
+        Route::get('/chat/{conversation}', [ChatController::class, 'show'])->name('chat.show');
+        Route::post('/chat/{conversation}/send', [ChatController::class, 'sendMessage'])->name('chat.send');
+        Route::post('/chat/{conversation}/read', [ChatController::class, 'markRead'])->name('chat.read');
+    });
 
-    // ช่องทางการชำระเงิน
-    Route::get('/payment', [PaymentController::class, 'index'])->name('payment.index');
-    Route::post('/payment', [PaymentController::class, 'store'])->name('payment.store');
-    Route::delete('/payment/{paymentMethod}', [PaymentController::class, 'destroy'])->name('payment.destroy');
+    // ช่องทางการชำระเงิน (ห้ามแอดมิน)
+    Route::middleware('not.admin')->group(function () {
+        Route::get('/payment', [PaymentController::class, 'index'])->name('payment.index');
+        Route::post('/payment', [PaymentController::class, 'store'])->name('payment.store');
+        Route::delete('/payment/{paymentMethod}', [PaymentController::class, 'destroy'])->name('payment.destroy');
+    });
 
-    // รีวิวร้าน
-    Route::post('/reviews/{shop}', [ReviewController::class, 'store'])->name('reviews.store');
-    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+    // รีวิวร้าน (ห้ามแอดมิน)
+    Route::middleware('not.admin')->group(function () {
+        Route::post('/reviews/{shop}', [ReviewController::class, 'store'])->name('reviews.store');
+        Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+    });
 
-    // ระบบซื้อขาย
-    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
-    Route::post('/orders/{book}', [OrderController::class, 'store'])->name('orders.store');
-    Route::post('/orders/{order}/accept', [OrderController::class, 'accept'])->name('orders.accept');
-    Route::post('/orders/{order}/slip', [OrderController::class, 'uploadSlip'])->name('orders.slip');
-    Route::post('/orders/{order}/confirm-payment', [OrderController::class, 'confirmPayment'])->name('orders.confirmPayment');
-    Route::post('/orders/{order}/shipping', [OrderController::class, 'confirmShipping'])->name('orders.shipping');
-    Route::post('/orders/{order}/received', [OrderController::class, 'confirmReceived'])->name('orders.received');
-    Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
-    Route::post('/orders/{order}/dispute', [OrderController::class, 'dispute'])->name('orders.dispute');
+    // ระบบซื้อขาย (ห้ามแอดมิน)
+    Route::middleware('not.admin')->group(function () {
+        Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+        Route::post('/orders/{book}', [OrderController::class, 'store'])->name('orders.store');
+        Route::post('/orders/{order}/accept', [OrderController::class, 'accept'])->name('orders.accept');
+        Route::post('/orders/{order}/slip', [OrderController::class, 'uploadSlip'])->name('orders.slip');
+        Route::post('/orders/{order}/confirm-payment', [OrderController::class, 'confirmPayment'])->name('orders.confirmPayment');
+        Route::post('/orders/{order}/shipping', [OrderController::class, 'confirmShipping'])->name('orders.shipping');
+        Route::post('/orders/{order}/received', [OrderController::class, 'confirmReceived'])->name('orders.received');
+        Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+        Route::post('/orders/{order}/dispute', [OrderController::class, 'dispute'])->name('orders.dispute');
+    });
 
     // แชทรายงาน (ฝั่งผู้ใช้)
     Route::get('/report-chats', [ReportChatController::class, 'index'])->name('report-chat.index');

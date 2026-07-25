@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Events\ReportCreated;
 use App\Models\Book;
 use App\Models\User;
 use App\Models\Report;
@@ -51,13 +52,17 @@ class ReportController extends Controller
             return back()->with('error', 'คุณเคยรายงานสิ่งนี้ไปแล้ว กำลังรอตรวจสอบ');
         }
 
-        Report::create([
+        $report = Report::create([
             'reporter_id' => $reporterId,
             'reportable_type' => $type,
             'reportable_id' => $id,
             'reason' => $request->reason,
             'detail' => $request->detail,
         ]);
+
+        $report->load('reporter');
+
+        broadcast(new ReportCreated($report));
 
         return back()->with('success', 'ส่งรายงานแล้ว ขอบคุณที่ช่วยดูแลชุมชน');
     }

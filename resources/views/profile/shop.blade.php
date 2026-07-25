@@ -37,15 +37,22 @@
             </div>
         </div>
 
+        @php
+            $isOwnShop = auth()->check() && auth()->id() === $shop->id;
+            $isAdminViewer = auth()->check() && auth()->user()->isAdmin();
+        @endphp
+
         @auth
-            @if (auth()->id() !== $shop->id)
+            @if (!$isOwnShop && !$isAdminViewer)
                 <button class="btn btn-link btn-sm text-danger mt-2" data-bs-toggle="modal" data-bs-target="#reportShopModal">🚩 รายงานร้านนี้</button>
             @endif
         @endauth
 
         {{-- ฟอร์มรีวิว (เฉพาะคนที่เคยแชท) --}}
         @auth
-            @if ($canReview)
+            @if ($isAdminViewer)
+                <div class="alert alert-info small mt-2">🛡️ โหมดแอดมิน: ดูข้อมูลได้อย่างเดียว</div>
+            @elseif ($canReview)
                 <div class="card shadow-sm">
                     <div class="card-body">
                         <h6>{{ $myReview ? 'แก้ไขรีวิวของคุณ' : 'เขียนรีวิว' }}</h6>
@@ -68,7 +75,7 @@
                         </form>
                     </div>
                 </div>
-            @elseif (auth()->id() !== $shop->id)
+            @elseif (!$isOwnShop)
                 <div class="alert alert-secondary small">ซื้อขายกับร้านนี้สำเร็จก่อนถึงจะรีวิวได้</div>
             @endif
         @endauth
@@ -123,7 +130,7 @@
 
 {{-- Modal รายงานร้าน --}}
 @auth
-@if (auth()->id() !== $shop->id)
+@if (!$isOwnShop && !$isAdminViewer)
 <div class="modal fade" id="reportShopModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">

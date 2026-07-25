@@ -26,35 +26,38 @@
                         </li>
                     @else
 
-                        <li class="nav-item">
-                            <a class="nav-link position-relative" href="{{ route('report-chat.index') }}">
-                                📨 ข้อความจากแอดมิน
-                                <span id="reportMessageUnreadBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger {{ (($unreadReportMessageCount ?? 0) > 0) ? '' : 'd-none' }}" style="font-size: 10px;">
-                                    {{ (($unreadReportMessageCount ?? 0) > 99) ? '99+' : ($unreadReportMessageCount ?? 0) }}
-                                </span>
-                            </a>
-                        </li>
+                        @unless (auth()->user()->isAdmin())
 
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('books.create') }}">➕ ลงประกาศหนังสือ</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('books.my') }}">📚 หนังสือของฉัน</a>
-                        </li>
-                        <li class="nav-item" data-current-user-id="{{ auth()->id() }}">
-                            <a class="nav-link position-relative" href="{{ route('chat.index') }}">
-                                💬 ข้อความ
-                                <span id="chatUnreadBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger {{ (isset($unreadMessageCount) && $unreadMessageCount > 0) ? '' : 'd-none' }}" style="font-size: 10px;">
-                                    {{ isset($unreadMessageCount) && $unreadMessageCount > 99 ? '99+' : ($unreadMessageCount ?? 0) }}
-                                </span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('payment.index') }}">💳 การชำระเงิน</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('orders.index') }}">🧾 คำสั่งซื้อ</a>
-                        </li>
+                            <li class="nav-item">
+                                <a class="nav-link position-relative" href="{{ route('report-chat.index') }}">
+                                    📨 ข้อความจากแอดมิน
+                                    <span id="reportMessageUnreadBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger {{ (($unreadReportMessageCount ?? 0) > 0) ? '' : 'd-none' }}" style="font-size: 10px;">
+                                        {{ (($unreadReportMessageCount ?? 0) > 99) ? '99+' : ($unreadReportMessageCount ?? 0) }}
+                                    </span>
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('books.create') }}">➕ ลงประกาศหนังสือ</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('books.my') }}">📚 หนังสือของฉัน</a>
+                            </li>
+                            <li class="nav-item" data-current-user-id="{{ auth()->id() }}">
+                                <a class="nav-link position-relative" href="{{ route('chat.index') }}">
+                                    💬 ข้อความ
+                                    <span id="chatUnreadBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger {{ (isset($unreadMessageCount) && $unreadMessageCount > 0) ? '' : 'd-none' }}" style="font-size: 10px;">
+                                        {{ isset($unreadMessageCount) && $unreadMessageCount > 99 ? '99+' : ($unreadMessageCount ?? 0) }}
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('payment.index') }}">💳 การชำระเงิน</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('orders.index') }}">🧾 คำสั่งซื้อ</a>
+                            </li>
+                        @endunless
 
                             @if (Auth::user()->is_admin)
                                 <li class="nav-item">

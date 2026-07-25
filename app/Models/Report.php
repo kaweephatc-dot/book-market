@@ -16,6 +16,11 @@ class Report extends Model
         'reason',
         'detail',
         'status',
+        'seen_at',
+    ];
+
+    protected $casts = [
+        'seen_at' => 'datetime',
     ];
 
     // คนที่รายงาน

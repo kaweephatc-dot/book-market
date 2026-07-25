@@ -5,7 +5,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4>💬 แชทกับ {{ $chat->user->shop_name ?? $chat->user->name }}</h4>
-    <a href="{{ route('admin.reports') }}" class="btn btn-sm btn-secondary">← กลับ</a>
+    <a href="{{ route('admin.report-chats.index') }}" class="btn btn-sm btn-secondary">← กลับ</a>
 </div>
 
 {{-- ข้อมูลรายงานที่เกี่ยวข้อง --}}

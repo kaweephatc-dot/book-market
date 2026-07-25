@@ -136,4 +136,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(ReportChat::class);
     }
+
+    // เช็คว่าเป็นแอดมินไหม
+    public function isAdmin(): bool
+    {
+        return $this->is_admin;
+    }
 }

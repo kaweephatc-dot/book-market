@@ -45,15 +45,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ตัวเลขแดงข้อความแชทรายงาน (สำหรับแอดมิน)
+    // ช่องแจ้งเตือนรวมของแอดมิน (ข้อความแชทรายงาน + รายงานใหม่)
     const reportBadge = document.getElementById('reportUnreadBadge');
-    if (reportBadge) {
-        window.Echo.private('admin-notifications').listen('.report-message.sent', (payload) => {
-            if (isViewingChannel('report-chat.' + payload.report_chat_id)) {
-                return;
-            }
+    const newReportsBadge = document.getElementById('newReportsBadge');
 
-            bumpBadge(reportBadge);
-        });
+    if (reportBadge || newReportsBadge) {
+        const adminChannel = window.Echo.private('admin-notifications');
+
+        // ตัวเลขแดงข้อความแชทรายงาน (สำหรับแอดมิน)
+        if (reportBadge) {
+            adminChannel.listen('.report-message.sent', (payload) => {
+                if (isViewingChannel('report-chat.' + payload.report_chat_id)) {
+                    return;
+                }
+
+                bumpBadge(reportBadge);
+            });
+        }
+
+        // ตัวเลขแดงรายงานใหม่ที่ยังไม่มีแอดมินเห็น (สำหรับแอดมิน)
+        if (newReportsBadge) {
+            adminChannel.listen('.report.created', () => {
+                bumpBadge(newReportsBadge);
+            });
+        }
     }
 });

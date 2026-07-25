@@ -117,8 +117,17 @@
             @endif
         </div>
 
+        @php
+            $isOwner = auth()->check() && auth()->id() === $book->user_id;
+            $isAdminViewer = auth()->check() && auth()->user()->isAdmin();
+        @endphp
+
         @auth
-            @if (auth()->id() !== $book->user_id)
+            @if ($isAdminViewer)
+                <div class="alert alert-info text-center mb-0">🛡️ โหมดแอดมิน: ดูข้อมูลได้อย่างเดียว</div>
+            @elseif ($isOwner)
+                <div class="alert alert-secondary text-center mb-0">นี่คือหนังสือของคุณ</div>
+            @else
                 @if ($book->status === 'available')
                     <form method="POST" action="{{ route('orders.store', $book) }}" onsubmit="return confirm('ยืนยันการสั่งซื้อ/แลกหนังสือเล่มนี้?')">
                         @csrf
@@ -131,16 +140,14 @@
                 @endif
 
                 <a href="{{ route('chat.start', $book) }}" class="btn btn-primary w-100">💬 ติดต่อผู้ขาย</a>
-            @else
-                <div class="alert alert-secondary text-center mb-0">นี่คือหนังสือของคุณ</div>
             @endif
         @else
-        
+
             <a href="{{ route('login') }}" class="btn btn-outline-primary w-100">เข้าสู่ระบบเพื่อติดต่อผู้ขาย</a>
         @endauth
 
         @auth
-            @if (auth()->id() !== $book->user_id)
+            @if (!$isOwner && !$isAdminViewer)
                 <button class="btn btn-link btn-sm text-danger w-100 mt-2" data-bs-toggle="modal" data-bs-target="#reportBookModal">🚩 รายงานหนังสือนี้</button>
             @endif
         @endauth
@@ -182,7 +189,7 @@
 
     {{-- Modal รายงานหนังสือ --}}
 @auth
-@if (auth()->id() !== $book->user_id)
+@if (!$isOwner && !$isAdminViewer)
 <div class="modal fade" id="reportBookModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">

@@ -142,7 +142,33 @@ class AdminController extends Controller
             ->latest()
             ->paginate(15);
 
+        // มาร์คว่าแอดมินเห็นรายงานที่ยังไม่เคยเห็นแล้ว (ทำหลังดึงข้อมูลมา เพื่อให้ badge "ใหม่" ยังขึ้นในรอบนี้)
+        Report::whereNull('seen_at')->update(['seen_at' => now()]);
+
         return view('admin.reports', compact('pendingReports', 'resolvedReports'));
+    }
+
+    // รายการแชทกับผู้รายงาน แยกเป็นกำลังคุยอยู่ / ปิดไปแล้ว
+    public function reportChats()
+    {
+        $unreadQuery = function ($q) {
+            $q->where('is_read', false)
+                ->whereColumn('report_messages.user_id', 'report_chats.user_id');
+        };
+
+        $openChats = ReportChat::with(['report', 'user'])
+            ->withCount(['messages as unread_count' => $unreadQuery])
+            ->where('is_closed', false)
+            ->latest('updated_at')
+            ->get();
+
+        $closedChats = ReportChat::with(['report', 'user'])
+            ->withCount(['messages as unread_count' => $unreadQuery])
+            ->where('is_closed', true)
+            ->latest('updated_at')
+            ->get();
+
+        return view('admin.report-chats', compact('openChats', 'closedChats'));
     }
 
     // ปิดเรื่อง (ไม่ทำอะไร - รายงานไม่มีมูล)

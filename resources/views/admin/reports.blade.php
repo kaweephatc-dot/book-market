@@ -16,6 +16,9 @@
                 <div class="border rounded p-3 mb-2">
                     <div class="d-flex justify-content-between align-items-start">
                         <div class="flex-grow-1">
+                            @unless ($report->seen_at)
+                                <span class="badge bg-danger">ใหม่</span>
+                            @endunless
                             <span class="badge bg-secondary">{{ $report->typeLabel() }}</span>
                             <span class="badge bg-warning text-dark">{{ $report->reason }}</span>
 

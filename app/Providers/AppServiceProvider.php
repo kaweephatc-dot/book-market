@@ -51,6 +51,7 @@ class AppServiceProvider extends ServiceProvider
         // แชร์จำนวนข้อความแชทรายงานที่ยังไม่อ่านไปหน้าแอดมิน (สำหรับ navbar)
         \Illuminate\Support\Facades\View::composer('admin.layout', function ($view) {
             $unreadReportCount = 0;
+            $unseenReportCount = 0;
 
             if (\Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::user()->is_admin) {
                 // นับข้อความที่ผู้ใช้ (ไม่ใช่แอดมิน) ส่งมาแล้วยังไม่มีแอดมินคนไหนอ่าน
@@ -59,9 +60,13 @@ class AppServiceProvider extends ServiceProvider
                     ->whereColumn('report_messages.user_id', 'report_chats.user_id')
                     ->where('report_messages.is_read', false)
                     ->count();
+
+                // นับรายงานที่ยังไม่มีแอดมินคนไหนเคยเห็นเลย
+                $unseenReportCount = \App\Models\Report::whereNull('seen_at')->count();
             }
 
             $view->with('unreadReportCount', $unreadReportCount);
+            $view->with('unseenReportCount', $unseenReportCount);
         });
     }
 }
