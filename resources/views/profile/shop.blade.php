@@ -113,7 +113,7 @@
                 <div class="col-6 col-md-4">
                     <div class="card h-100">
                         @if ($book->images->count() > 0)
-                            <img src="{{ asset('storage/' . $book->images->first()->image_path) }}" class="card-img-top" style="height: 120px; object-fit: cover;" alt="">
+                            <img src="{{ asset('storage/' . $book->coverImage()->image_path) }}" class="card-img-top" style="height: 120px; object-fit: cover;" alt="">
                         @endif
                         <div class="card-body p-2">
                             <div class="small fw-bold text-truncate">{{ $book->title }}</div>

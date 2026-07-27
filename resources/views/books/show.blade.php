@@ -9,7 +9,7 @@
         @if ($book->images->count() > 0)
             {{-- รูปหลัก (คลิกเพื่อขยาย) --}}
             <img id="mainImage"
-                 src="{{ asset('storage/' . $book->images->first()->image_path) }}"
+                 src="{{ asset('storage/' . $book->coverImage()->image_path) }}"
                  class="d-block w-100 rounded shadow-sm mb-2"
                  style="height: 400px; object-fit: cover; cursor: pointer;"
                  alt="{{ $book->title }}"

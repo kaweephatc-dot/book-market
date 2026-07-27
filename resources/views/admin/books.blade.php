@@ -23,7 +23,7 @@
                     <tr>
                         <td>
                             @if ($book->images->count() > 0)
-                                <img src="{{ asset('storage/' . $book->images->first()->image_path) }}" style="width: 45px; height: 45px; object-fit: cover;" class="rounded" alt="">
+                                <img src="{{ asset('storage/' . $book->coverImage()->image_path) }}" style="width: 45px; height: 45px; object-fit: cover;" class="rounded" alt="">
                             @else
                                 <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">📚</div>
                             @endif

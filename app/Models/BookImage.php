@@ -12,8 +12,15 @@ class BookImage extends Model
     protected $fillable = [
         'book_id',
         'image_path',
+        'slot',
         'ai_condition',
         'ai_score',
+        'ai_note',
+        'ai_angle_match',
+    ];
+
+    protected $casts = [
+        'ai_angle_match' => 'boolean',
     ];
 
     // รูปนี้เป็นของหนังสือเล่มไหน

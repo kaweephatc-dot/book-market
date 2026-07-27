@@ -17,7 +17,7 @@
                     <a href="{{ route('chat.show', $conv) }}" class="list-group-item list-group-item-action">
                         <div class="d-flex align-items-center gap-3">
                             @if ($conv->book->images->count() > 0)
-                                <img src="{{ asset('storage/' . $conv->book->images->first()->image_path) }}" style="width: 50px; height: 50px; object-fit: cover;" class="rounded" alt="">
+                                <img src="{{ asset('storage/' . $conv->book->coverImage()->image_path) }}" style="width: 50px; height: 50px; object-fit: cover;" class="rounded" alt="">
                             @else
                                 <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">📚</div>
                             @endif

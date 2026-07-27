@@ -4,7 +4,7 @@
         <div class="d-flex gap-3">
             {{-- รูปหนังสือ --}}
             @if ($order->book->images->count() > 0)
-                <img src="{{ asset('storage/' . $order->book->images->first()->image_path) }}" style="width: 70px; height: 70px; object-fit: cover;" class="rounded" alt="">
+                <img src="{{ asset('storage/' . $order->book->coverImage()->image_path) }}" style="width: 70px; height: 70px; object-fit: cover;" class="rounded" alt="">
             @else
                 <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">📚</div>
             @endif

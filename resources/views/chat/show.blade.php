@@ -10,7 +10,7 @@
         <div class="card mb-3">
             <div class="card-body d-flex align-items-center gap-3">
                 @if ($conversation->book->images->count() > 0)
-                    <img src="{{ asset('storage/' . $conversation->book->images->first()->image_path) }}" style="width: 60px; height: 60px; object-fit: cover;" class="rounded" alt="">
+                    <img src="{{ asset('storage/' . $conversation->book->coverImage()->image_path) }}" style="width: 60px; height: 60px; object-fit: cover;" class="rounded" alt="">
                 @endif
                 <div class="flex-grow-1">
                     <strong>{{ $conversation->book->title }}</strong>

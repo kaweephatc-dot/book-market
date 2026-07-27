@@ -33,6 +33,12 @@ class Book extends Model
         return $this->hasMany(BookImage::class);
     }
 
+    // รูปหลักของประกาศ (รูปช่อง "ปกหนังสือ") ถ้าไม่มีให้ fallback เป็นรูปแรก (รองรับหนังสือเก่า)
+    public function coverImage()
+    {
+        return $this->images->firstWhere('slot', 'cover') ?? $this->images->first();
+    }
+
     // รายงานที่หนังสือเล่มนี้ได้รับ
     public function reports()
     {

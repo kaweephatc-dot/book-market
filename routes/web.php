@@ -67,6 +67,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['shop', 'not.admin'])->group(function () {
         Route::get('/books/create', [BookController::class, 'create'])->name('books.create');
         Route::post('/books', [BookController::class, 'store'])->name('books.store');
+        Route::post('/books/analyze-condition', [BookController::class, 'analyzeCondition'])->name('books.analyzeCondition');
     });
 
     // รายงานโพสต์

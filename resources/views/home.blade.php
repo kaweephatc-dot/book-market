@@ -71,7 +71,7 @@
             <div class="col-6 col-md-4 col-lg-3 book-item">
                 <div class="card h-100 shadow-sm">
                     @if ($book->images->count() > 0)
-                        <img src="{{ asset('storage/' . $book->images->first()->image_path) }}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="{{ $book->title }}">
+                        <img src="{{ asset('storage/' . $book->coverImage()->image_path) }}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="{{ $book->title }}">
                     @else
                         <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
                             <span class="text-muted">ไม่มีรูป</span>
@@ -80,9 +80,9 @@
                     <div class="card-body">
                         <h6 class="card-title">{{ $book->title }}</h6>
                         <p class="card-text small text-muted mb-1">{{ $book->category }}</p>
-                        @if ($book->images->first() && $book->images->first()->ai_condition)
+                        @if ($book->coverImage() && $book->coverImage()->ai_condition)
                             @php
-                                $cond = $book->images->first()->ai_condition;
+                                $cond = $book->coverImage()->ai_condition;
                                 $color = match($cond) {
                                     'ดีมาก' => 'success',
                                     'ดี' => 'primary',

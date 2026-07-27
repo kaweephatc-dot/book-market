@@ -19,7 +19,7 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('books.store') }}" enctype="multipart/form-data">
+                <form method="POST" action="{{ route('books.store') }}" enctype="multipart/form-data" data-book-condition-form data-analyze-url="{{ route('books.analyzeCondition') }}">
                     @csrf
 
                     <div class="mb-3">
@@ -62,20 +62,78 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">สภาพหนังสือ</label>
-                        <input type="text" name="condition" class="form-control" value="{{ old('condition') }}" placeholder="เช่น สภาพดี มีรอยพับเล็กน้อย">
-                    </div>
-
-                    <div class="mb-3">
                         <label class="form-label">รายละเอียด</label>
                         <textarea name="description" class="form-control" rows="4">{{ old('description') }}</textarea>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">รูปภาพหนังสือ</label>
-                        <input type="file" name="images[]" class="form-control" accept="image/*" multiple>
-                        <small class="text-muted">เลือกได้หลายรูป (ไม่เกิน 2MB ต่อรูป)</small>
+                    <hr>
+
+                    <h6 class="mb-1">รูปภาพหนังสือ</h6>
+                    <p class="small text-muted">ถ่ายตามมุมที่แนะนำแต่ละช่อง ยิ่งใส่ครบยิ่งช่วยให้ AI ประเมินแม่นยำขึ้น และเพิ่มความน่าเชื่อถือให้ร้านของคุณ</p>
+
+                    @php
+                        $slots = [
+                            'cover' => ['label' => 'ปกหนังสือ', 'hint' => 'ถ่ายปกหน้าให้เห็นชื่อเรื่องและภาพปกชัดเจน ไม่เอียง ไม่มีแสงสะท้อน', 'required' => true],
+                            'spine' => ['label' => 'สันหนังสือ', 'hint' => 'ถ่ายสันหนังสือด้านข้าง ให้เห็นรอยแตก/ยับของสันชัดเจน', 'required' => false],
+                            'page' => ['label' => 'หน้าหนังสือ (สุ่ม)', 'hint' => 'เปิดหนังสือสุ่มหน้าใดก็ได้ ถ่ายให้เห็นสภาพกระดาษ รอยเปื้อนหรือรอยขีดเขียน (ถ้ามี)', 'required' => false],
+                            'back' => ['label' => 'ปกหลังหนังสือ', 'hint' => 'ถ่ายปกหลังให้เห็นทั้งแผ่น รวมบาร์โค้ด/ราคาปก (ถ้ามี)', 'required' => false],
+                        ];
+                    @endphp
+
+                    <div class="row g-3 mb-3">
+                        @foreach ($slots as $slot => $info)
+                            <div class="col-md-6">
+                                <div class="border rounded p-2 h-100">
+                                    <label class="form-label fw-bold mb-1">
+                                        {{ $info['label'] }}
+                                        @if ($info['required'])
+                                            <span class="text-danger">*</span>
+                                        @else
+                                            <span class="text-muted small">(ไม่บังคับ)</span>
+                                        @endif
+                                    </label>
+                                    <div class="small text-muted mb-2">{{ $info['hint'] }}</div>
+                                    <input type="file" name="{{ $slot }}_image" accept="image/*"
+                                           class="form-control form-control-sm"
+                                           data-slot-input="{{ $slot }}"
+                                           @if ($info['required']) required @endif>
+                                    <img data-slot-preview="{{ $slot }}" class="img-fluid rounded mt-2 d-none" style="max-height: 150px;" alt="ตัวอย่างรูป{{ $info['label'] }}">
+                                    <div data-slot-result="{{ $slot }}" class="small mt-2 d-none"></div>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
+                    <small class="text-muted d-block mb-3">แต่ละรูปไม่เกิน 2MB</small>
+
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-outline-primary" data-analyze-btn>
+                            🤖 ประเมินด้วย AI
+                        </button>
+                        <span class="text-muted small ms-2 d-none" data-analyze-loading>
+                            <span class="spinner-border spinner-border-sm" role="status"></span> กำลังประเมิน...
+                        </span>
+                    </div>
+
+                    <div class="alert alert-danger d-none" data-analyze-error></div>
+
+                    <div class="alert alert-light border d-none" data-analyze-overall>
+                        <div class="fw-bold" data-overall-headline></div>
+                        <div class="small" data-overall-note></div>
+                        <div class="text-muted small mt-2">ประเมินโดย AI จากรูปภาพ ตรวจสอบและปรับได้ตามจริง</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">สภาพหนังสือ</label>
+                        <select name="condition" class="form-select" data-condition-select>
+                            <option value="">-- ยังไม่ระบุ --</option>
+                            <option value="ดีมาก" {{ old('condition') === 'ดีมาก' ? 'selected' : '' }}>ดีมาก</option>
+                            <option value="ดี" {{ old('condition') === 'ดี' ? 'selected' : '' }}>ดี</option>
+                            <option value="พอใช้" {{ old('condition') === 'พอใช้' ? 'selected' : '' }}>พอใช้</option>
+                            <option value="ต้องซ่อม" {{ old('condition') === 'ต้องซ่อม' ? 'selected' : '' }}>ต้องซ่อม</option>
+                        </select>
+                    </div>
+
+                    <input type="hidden" name="ai_analysis" data-ai-analysis-field>
 
                     <button type="submit" class="btn btn-primary w-100">ลงประกาศ</button>
                 </form>
