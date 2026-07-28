@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.user-dashboard')
 
 @section('title', 'ข้อความจากผู้ดูแลระบบ')
 
