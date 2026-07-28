@@ -143,6 +143,78 @@ function initChatRoom(root) {
     });
 }
 
+function moveItemToTop(list, item) {
+    list.prepend(item);
+}
+
+function bumpItemBadge(item) {
+    const badge = item.querySelector('[data-unread-badge]');
+    if (!badge) {
+        return;
+    }
+
+    const count = (parseInt(badge.textContent, 10) || 0) + 1;
+    badge.textContent = count > 99 ? '99+' : count;
+    badge.classList.remove('d-none');
+}
+
+// อัปเดตแถวรายการแชท/แชทรายงานแบบสด (ย้ายขึ้นบนสุด + อัปเดตพรีวิว) ตอนมีข้อความใหม่เข้ามา
+// ระหว่างที่เปิดหน้ารายการอยู่ ไม่ต้องรอ refresh หน้าเหมือนก่อน
+function initChatList() {
+    const list = document.querySelector('[data-chat-list]');
+
+    if (!list || !window.Echo) {
+        return;
+    }
+
+    const userId = list.dataset.currentUserId;
+
+    if (!userId) {
+        return;
+    }
+
+    const channel = window.Echo.private('chat-user.' + userId);
+
+    channel.listen('.message.sent', (payload) => {
+        const item = list.querySelector(`[data-conversation-id="${payload.conversation_id}"]`);
+
+        if (!item) {
+            return;
+        }
+
+        const preview = item.querySelector('[data-latest-message]');
+        if (preview) {
+            preview.textContent = payload.message;
+            preview.classList.remove('d-none', 'text-muted');
+            preview.classList.add('fw-bold');
+        }
+
+        const timeEl = item.querySelector('[data-updated-at]');
+        if (timeEl) {
+            timeEl.textContent = 'เมื่อสักครู่';
+        }
+
+        bumpItemBadge(item);
+        moveItemToTop(list, item);
+    });
+
+    channel.listen('.report-message.sent', (payload) => {
+        const item = list.querySelector(`[data-report-chat-id="${payload.report_chat_id}"]`);
+
+        if (!item) {
+            return;
+        }
+
+        const countEl = item.querySelector('[data-message-count]');
+        if (countEl) {
+            countEl.textContent = (parseInt(countEl.textContent, 10) || 0) + 1;
+        }
+
+        moveItemToTop(list, item);
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('[data-chat-root]').forEach(initChatRoom);
+    initChatList();
 });
