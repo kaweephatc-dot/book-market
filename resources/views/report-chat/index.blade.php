@@ -17,7 +17,8 @@
                         <span data-message-count>{{ $chat->messages->count() }}</span> ข้อความ
                     </div>
                 </div>
-                <div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge rounded-pill bg-danger {{ $chat->unread_count > 0 ? '' : 'd-none' }}" data-unread-badge>{{ $chat->unread_count }}</span>
                     @if ($chat->is_closed)
                         <span class="badge bg-secondary">ปิดแล้ว</span>
                     @else

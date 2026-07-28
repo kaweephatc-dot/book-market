@@ -13,8 +13,13 @@ class ReportChatController extends Controller
     // หน้ารวมแชทรายงานของผู้ใช้ (กล่องข้อความจาก admin)
     public function index()
     {
+        $userId = Auth::id();
+
         $chats = ReportChat::with(['report', 'messages'])
-            ->where('user_id', Auth::id())
+            ->withCount(['messages as unread_count' => function ($q) use ($userId) {
+                $q->where('user_id', '!=', $userId)->where('is_read', false);
+            }])
+            ->where('user_id', $userId)
             ->latest('updated_at')
             ->get();
 

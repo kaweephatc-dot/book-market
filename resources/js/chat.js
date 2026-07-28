@@ -272,6 +272,14 @@ function buildReportChatItem(list, payload) {
     row.appendChild(left);
 
     const right = document.createElement('div');
+    right.className = 'd-flex align-items-center gap-2';
+
+    const unreadBadge = document.createElement('span');
+    unreadBadge.className = 'badge rounded-pill bg-danger';
+    unreadBadge.setAttribute('data-unread-badge', '');
+    unreadBadge.textContent = '1';
+    right.appendChild(unreadBadge);
+
     const statusBadge = document.createElement('span');
     statusBadge.className = 'badge bg-success';
     statusBadge.textContent = 'กำลังสนทนา';
@@ -333,6 +341,9 @@ function initChatList() {
             if (countEl) {
                 countEl.textContent = (parseInt(countEl.textContent, 10) || 0) + 1;
             }
+
+            // ช่องนี้ (chat-user.{userId}) ได้ event นี้เฉพาะตอนแอดมินตอบเท่านั้น จึงถือว่ายังไม่อ่านเสมอ
+            bumpItemBadge(item);
         } else {
             item = buildReportChatItem(list, payload);
             revealList(list);
