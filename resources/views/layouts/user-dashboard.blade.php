@@ -130,6 +130,15 @@
                     </a>
                 </li>
 
+                @if (auth()->user()->isAdmin())
+                    <li class="nav-item {{ request()->routeIs('admin.*') ? 'active' : '' }}">
+                        <a class="nav-link text-warning" href="{{ route('admin.dashboard') }}">
+                            <i>🛡️</i>
+                            <span>Admin Panel</span>
+                        </a>
+                    </li>
+                @endif
+
                 <hr class="sidebar-divider">
 
                 <li class="nav-item">

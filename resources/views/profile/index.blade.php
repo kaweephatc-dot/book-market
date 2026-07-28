@@ -53,7 +53,7 @@
 
                 <div class="d-flex gap-2">
                     <a href="{{ route('profile.edit') }}" class="btn btn-primary">แก้ไขโปรไฟล์</a>
-                    @if (!$user->is_shop)
+                    @if (!$user->is_shop && !$user->isAdmin())
                         <a href="{{ route('shop.register') }}" class="btn btn-success">🏪 สมัครเป็นร้านค้า</a>
                     @endif
                 </div>
