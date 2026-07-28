@@ -158,8 +158,133 @@ function bumpItemBadge(item) {
     badge.classList.remove('d-none');
 }
 
-// อัปเดตแถวรายการแชท/แชทรายงานแบบสด (ย้ายขึ้นบนสุด + อัปเดตพรีวิว) ตอนมีข้อความใหม่เข้ามา
-// ระหว่างที่เปิดหน้ารายการอยู่ ไม่ต้องรอ refresh หน้าเหมือนก่อน
+// เปิดให้เห็นรายการ (ครั้งแรกที่มีห้องแชทโผล่มา ตอนก่อนหน้านี้ยังไม่มีเลยเลยโชว์ empty state ค้างอยู่)
+function revealList(list) {
+    list.style.display = '';
+
+    const emptyState = list.parentElement && list.parentElement.querySelector('[data-chat-empty-state]');
+    if (emptyState) {
+        emptyState.style.display = 'none';
+    }
+}
+
+// สร้างแถวใหม่ในหน้ารายการแชทซื้อขาย ตอนมีคนเริ่มแชทกับเราเป็นครั้งแรกขณะเปิดหน้าค้างไว้
+// (ห้องนี้ยังไม่เคยถูก render จากฝั่งเซิร์ฟเวอร์ เลยต้องสร้าง element เองล้วนๆ ด้วย textContent
+// ป้องกัน XSS จากชื่อหนังสือ/ชื่อร้าน/ข้อความที่มาจาก broadcast payload)
+function buildConversationItem(list, payload) {
+    const a = document.createElement('a');
+    a.href = list.dataset.chatShowUrlTemplate.replace('__ID__', payload.conversation_id);
+    a.className = 'list-group-item list-group-item-action';
+    a.dataset.conversationId = payload.conversation_id;
+
+    const row = document.createElement('div');
+    row.className = 'd-flex align-items-center gap-3';
+
+    let thumb;
+    if (payload.book_cover_url) {
+        thumb = document.createElement('img');
+        thumb.src = payload.book_cover_url;
+        thumb.style.width = '50px';
+        thumb.style.height = '50px';
+        thumb.style.objectFit = 'cover';
+        thumb.className = 'rounded';
+        thumb.alt = '';
+    } else {
+        thumb = document.createElement('div');
+        thumb.className = 'bg-light rounded d-flex align-items-center justify-content-center';
+        thumb.style.width = '50px';
+        thumb.style.height = '50px';
+        thumb.textContent = '📚';
+    }
+    row.appendChild(thumb);
+
+    const body = document.createElement('div');
+    body.className = 'flex-grow-1';
+
+    const topLine = document.createElement('div');
+    topLine.className = 'd-flex justify-content-between align-items-center';
+
+    const title = document.createElement('strong');
+    title.textContent = payload.book_title;
+    topLine.appendChild(title);
+
+    const metaWrap = document.createElement('div');
+    metaWrap.className = 'd-flex align-items-center gap-2';
+
+    const badge = document.createElement('span');
+    badge.className = 'badge rounded-pill bg-danger';
+    badge.setAttribute('data-unread-badge', '');
+    badge.textContent = '1';
+    metaWrap.appendChild(badge);
+
+    const time = document.createElement('small');
+    time.className = 'text-muted';
+    time.setAttribute('data-updated-at', '');
+    time.textContent = 'เมื่อสักครู่';
+    metaWrap.appendChild(time);
+
+    topLine.appendChild(metaWrap);
+    body.appendChild(topLine);
+
+    const otherLine = document.createElement('div');
+    otherLine.className = 'small text-muted';
+    otherLine.textContent = 'กับ ' + payload.sender_display_name;
+    body.appendChild(otherLine);
+
+    const preview = document.createElement('div');
+    preview.className = 'small text-truncate fw-bold';
+    preview.setAttribute('data-latest-message', '');
+    preview.textContent = payload.message;
+    body.appendChild(preview);
+
+    row.appendChild(body);
+    a.appendChild(row);
+
+    return a;
+}
+
+// สร้างแถวใหม่ในหน้ารายการแชทรายงาน ตอนแอดมินเปิดแชทกับเราและตอบเป็นครั้งแรกขณะเปิดหน้าค้างไว้
+function buildReportChatItem(list, payload) {
+    const a = document.createElement('a');
+    a.href = list.dataset.reportChatShowUrlTemplate.replace('__ID__', payload.report_chat_id);
+    a.className = 'list-group-item list-group-item-action';
+    a.dataset.reportChatId = payload.report_chat_id;
+
+    const row = document.createElement('div');
+    row.className = 'd-flex justify-content-between align-items-center';
+
+    const left = document.createElement('div');
+
+    const title = document.createElement('strong');
+    title.textContent = 'เรื่อง: ' + payload.report_reason;
+    left.appendChild(title);
+
+    const countLine = document.createElement('div');
+    countLine.className = 'small text-muted';
+
+    const countEl = document.createElement('span');
+    countEl.setAttribute('data-message-count', '');
+    countEl.textContent = '1';
+    countLine.appendChild(countEl);
+    countLine.appendChild(document.createTextNode(' ข้อความ'));
+    left.appendChild(countLine);
+
+    row.appendChild(left);
+
+    const right = document.createElement('div');
+    const statusBadge = document.createElement('span');
+    statusBadge.className = 'badge bg-success';
+    statusBadge.textContent = 'กำลังสนทนา';
+    right.appendChild(statusBadge);
+    row.appendChild(right);
+
+    a.appendChild(row);
+
+    return a;
+}
+
+// อัปเดตแถวรายการแชท/แชทรายงานแบบสด (ย้ายขึ้นบนสุด + อัปเดตพรีวิว หรือสร้างแถวใหม่ถ้ายังไม่เคยมี)
+// ตอนมีข้อความใหม่เข้ามาระหว่างที่เปิดหน้ารายการอยู่ ไม่ต้องรอ refresh หน้าเหมือนก่อน
 function initChatList() {
     const list = document.querySelector('[data-chat-list]');
 
@@ -176,38 +301,41 @@ function initChatList() {
     const channel = window.Echo.private('chat-user.' + userId);
 
     channel.listen('.message.sent', (payload) => {
-        const item = list.querySelector(`[data-conversation-id="${payload.conversation_id}"]`);
+        let item = list.querySelector(`[data-conversation-id="${payload.conversation_id}"]`);
 
-        if (!item) {
-            return;
+        if (item) {
+            const preview = item.querySelector('[data-latest-message]');
+            if (preview) {
+                preview.textContent = payload.message;
+                preview.classList.remove('d-none', 'text-muted');
+                preview.classList.add('fw-bold');
+            }
+
+            const timeEl = item.querySelector('[data-updated-at]');
+            if (timeEl) {
+                timeEl.textContent = 'เมื่อสักครู่';
+            }
+
+            bumpItemBadge(item);
+        } else {
+            item = buildConversationItem(list, payload);
+            revealList(list);
         }
 
-        const preview = item.querySelector('[data-latest-message]');
-        if (preview) {
-            preview.textContent = payload.message;
-            preview.classList.remove('d-none', 'text-muted');
-            preview.classList.add('fw-bold');
-        }
-
-        const timeEl = item.querySelector('[data-updated-at]');
-        if (timeEl) {
-            timeEl.textContent = 'เมื่อสักครู่';
-        }
-
-        bumpItemBadge(item);
         moveItemToTop(list, item);
     });
 
     channel.listen('.report-message.sent', (payload) => {
-        const item = list.querySelector(`[data-report-chat-id="${payload.report_chat_id}"]`);
+        let item = list.querySelector(`[data-report-chat-id="${payload.report_chat_id}"]`);
 
-        if (!item) {
-            return;
-        }
-
-        const countEl = item.querySelector('[data-message-count]');
-        if (countEl) {
-            countEl.textContent = (parseInt(countEl.textContent, 10) || 0) + 1;
+        if (item) {
+            const countEl = item.querySelector('[data-message-count]');
+            if (countEl) {
+                countEl.textContent = (parseInt(countEl.textContent, 10) || 0) + 1;
+            }
+        } else {
+            item = buildReportChatItem(list, payload);
+            revealList(list);
         }
 
         moveItemToTop(list, item);

@@ -37,6 +37,9 @@ class MessageSent implements ShouldBroadcastNow
 
     public function broadcastWith(): array
     {
+        $book = $this->message->conversation->book;
+        $cover = $book->images->count() > 0 ? $book->coverImage() : null;
+
         return [
             'id' => $this->message->id,
             'conversation_id' => $this->message->conversation_id,
@@ -44,6 +47,11 @@ class MessageSent implements ShouldBroadcastNow
             'user_name' => $this->message->user->name,
             'message' => $this->message->message,
             'created_at' => $this->message->created_at->format('H:i'),
+            // ข้อมูลเพิ่มสำหรับสร้างแถวใหม่ในหน้ารายการแชท ถ้าห้องนี้ยังไม่เคยแสดงในรายการ
+            // (เช่น มีคนเริ่มแชทกับเราครั้งแรกขณะเปิดหน้ารายการค้างไว้)
+            'sender_display_name' => $this->message->user->shop_name ?? $this->message->user->name,
+            'book_title' => $book->title,
+            'book_cover_url' => $cover ? asset('storage/' . $cover->image_path) : null,
         ];
     }
 }

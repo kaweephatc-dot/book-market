@@ -53,6 +53,8 @@ class ReportMessageSent implements ShouldBroadcastNow
             'message' => $this->message->message,
             'created_at' => $this->message->created_at->format('H:i'),
             'is_admin_sender' => (bool) $this->message->user->is_admin,
+            // ข้อมูลเพิ่มสำหรับสร้างแถวใหม่ในหน้ารายการ ถ้าห้องนี้ยังไม่เคยแสดง (แอดมินเพิ่งเปิดแชทครั้งแรก)
+            'report_reason' => $this->message->reportChat->report->reason,
         ];
     }
 }
