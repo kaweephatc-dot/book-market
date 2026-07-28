@@ -5,79 +5,39 @@
 @section('content')
 <h3 class="mb-4">📊 ภาพรวมระบบ</h3>
 
-<div class="row g-3">
-    <div class="col-md-4">
-        <div class="card text-center shadow-sm">
-            <div class="card-body">
-                <h2 class="text-primary">{{ $stats['total_users'] }}</h2>
-                <p class="text-muted mb-0">ผู้ใช้ทั้งหมด</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card text-center shadow-sm">
-            <div class="card-body">
-                <h2 class="text-success">{{ $stats['total_shops'] }}</h2>
-                <p class="text-muted mb-0">ร้านค้า</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card text-center shadow-sm">
-            <div class="card-body">
-                <h2 class="text-info">{{ $stats['total_books'] }}</h2>
-                <p class="text-muted mb-0">หนังสือทั้งหมด</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card text-center shadow-sm">
-            <div class="card-body">
-                <h2 class="text-secondary">{{ $stats['books_for_sale'] }}</h2>
-                <p class="text-muted mb-0">หนังสือขาย</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card text-center shadow-sm">
-            <div class="card-body">
-                <h2 class="text-secondary">{{ $stats['books_for_exchange'] }}</h2>
-                <p class="text-muted mb-0">หนังสือแลกเปลี่ยน</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card text-center shadow-sm">
-            <div class="card-body">
-                <h2 class="text-danger">{{ $stats['banned_users'] }}</h2>
-                <p class="text-muted mb-0">ผู้ใช้ที่ถูกแบน</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card text-center shadow-sm">
-            <div class="card-body">
-                <h2 class="text-info">{{ $stats['total_orders'] }}</h2>
-                <p class="text-muted mb-0">คำสั่งซื้อทั้งหมด</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card text-center shadow-sm">
-            <div class="card-body">
-                <h2 class="text-danger">{{ $stats['disputed_orders'] }}</h2>
-                <p class="text-muted mb-0">ข้อพิพาทรอตรวจสอบ</p>
-            </div>
-        </div>
-    </div>
-</div>
+@php
+    $cards = [
+        ['key' => 'total_users', 'label' => 'ผู้ใช้ทั้งหมด', 'color' => 'primary', 'icon' => '👥'],
+        ['key' => 'total_shops', 'label' => 'ร้านค้า', 'color' => 'success', 'icon' => '🏪'],
+        ['key' => 'total_books', 'label' => 'หนังสือทั้งหมด', 'color' => 'info', 'icon' => '📚'],
+        ['key' => 'books_for_sale', 'label' => 'หนังสือขาย', 'color' => 'secondary', 'icon' => '💰'],
+        ['key' => 'books_for_exchange', 'label' => 'หนังสือแลกเปลี่ยน', 'color' => 'secondary', 'icon' => '🔄'],
+        ['key' => 'banned_users', 'label' => 'ผู้ใช้ที่ถูกแบน', 'color' => 'danger', 'icon' => '🚫'],
+        ['key' => 'total_orders', 'label' => 'คำสั่งซื้อทั้งหมด', 'color' => 'info', 'icon' => '🧾'],
+        ['key' => 'disputed_orders', 'label' => 'ข้อพิพาทรอตรวจสอบ', 'color' => 'danger', 'icon' => '⚠️'],
+        ['key' => 'pending_reports', 'label' => 'รายงานรอตรวจสอบ', 'color' => 'danger', 'icon' => '🚩'],
+    ];
+@endphp
 
-<div class="col-md-4">
-        <div class="card text-center shadow-sm">
-            <div class="card-body">
-                <h2 class="text-danger">{{ $stats['pending_reports'] }}</h2>
-                <p class="text-muted mb-0">รายงานรอตรวจสอบ</p>
+<div class="row g-3">
+    @foreach ($cards as $card)
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-left-{{ $card['color'] }} shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row g-0 align-items-center">
+                        <div class="col me-2">
+                            <div class="text-xs fw-bold text-{{ $card['color'] }} text-uppercase mb-1">
+                                {{ $card['label'] }}
+                            </div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">{{ $stats[$card['key']] }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <span class="text-gray-300" style="font-size: 2rem;">{{ $card['icon'] }}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
+    @endforeach
+</div>
 @endsection

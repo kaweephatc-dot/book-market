@@ -1,0 +1,94 @@
+/*
+ * user-theme.css — ชั้นสีของแบรนด์ (ยืมมาจาก SB Admin 2 ที่ใช้ฝั่ง admin)
+ * ทับ Bootstrap 5.3.3 (CDN) เดิมของฝั่ง user เท่านั้น ไม่ใช่การแทนที่ Bootstrap
+ *
+ * ค่าสี/เงา/มุมโค้งทั้งหมดยืนยันตรงกับ public/vendor/sb-admin-2/css/sb-admin-2.min.css
+ * (theme ที่ใช้จริงฝั่ง admin) ไม่ได้เดา — ดู plan/verification ที่เทียบสีจริงคู่กัน
+ *
+ * ฟอนต์: จงใจไม่แตะในรอบนี้ (คงฟอนต์เดิมของเว็บ) — จะทำเป็นสเต็ปแยกภายหลัง
+ */
+
+:root {
+    /* ===== สีหลัก (ตรงกับ SB Admin 2) ===== */
+    --bs-primary: #3248f2;
+    --bs-primary-rgb: 50, 72, 242;
+    --bs-primary-text-emphasis: color-mix(in srgb, #3248f2 60%, black);
+    --bs-primary-bg-subtle: color-mix(in srgb, #3248f2 15%, white);
+    --bs-primary-border-subtle: color-mix(in srgb, #3248f2 40%, white);
+
+    --bs-success: #1cc88a;
+    --bs-success-rgb: 28, 200, 138;
+    --bs-success-text-emphasis: color-mix(in srgb, #1cc88a 60%, black);
+    --bs-success-bg-subtle: color-mix(in srgb, #1cc88a 15%, white);
+    --bs-success-border-subtle: color-mix(in srgb, #1cc88a 40%, white);
+
+    --bs-info: #36b9cc;
+    --bs-info-rgb: 54, 185, 204;
+    --bs-info-text-emphasis: color-mix(in srgb, #36b9cc 60%, black);
+    --bs-info-bg-subtle: color-mix(in srgb, #36b9cc 15%, white);
+    --bs-info-border-subtle: color-mix(in srgb, #36b9cc 40%, white);
+
+    --bs-warning: #f6c23e;
+    --bs-warning-rgb: 246, 194, 62;
+    --bs-warning-text-emphasis: color-mix(in srgb, #f6c23e 60%, black);
+    --bs-warning-bg-subtle: color-mix(in srgb, #f6c23e 15%, white);
+    --bs-warning-border-subtle: color-mix(in srgb, #f6c23e 40%, white);
+
+    --bs-danger: #e74a3b;
+    --bs-danger-rgb: 231, 74, 59;
+    --bs-danger-text-emphasis: color-mix(in srgb, #e74a3b 60%, black);
+    --bs-danger-bg-subtle: color-mix(in srgb, #e74a3b 15%, white);
+    --bs-danger-border-subtle: color-mix(in srgb, #e74a3b 40%, white);
+
+    --bs-secondary: #858796;
+    --bs-secondary-rgb: 133, 135, 150;
+    --bs-secondary-text-emphasis: color-mix(in srgb, #858796 60%, black);
+    --bs-secondary-bg-subtle: color-mix(in srgb, #858796 15%, white);
+    --bs-secondary-border-subtle: color-mix(in srgb, #858796 40%, white);
+
+    /* ===== รูปทรง/เงา (ตรงกับ SB Admin 2) ===== */
+    --bs-border-radius: .35rem;
+    --bs-border-radius-sm: .25rem;
+    --bs-border-radius-lg: .5rem;
+    --bs-box-shadow: 0 .15rem 1.75rem 0 rgba(58, 59, 69, .15);
+    --bs-box-shadow-sm: 0 .125rem .25rem 0 rgba(58, 59, 69, .2);
+    --bs-border-color-translucent: rgba(58, 59, 69, .125);
+}
+
+/*
+ * ปุ่ม (.btn-*, .btn-outline-*) — Bootstrap 5.3 ไม่ได้ผูก --bs-btn-bg กับ --bs-primary
+ * ต้อง override เจาะจงรายสี ข้อความบนปุ่ม info/warning ใช้สีดำตามธรรมเนียมเดิมของ Bootstrap
+ * (พื้นหลังสว่าง อ่านง่ายกว่าตัวขาว) สีอื่นใช้ตัวขาว
+ */
+.btn-primary,
+.btn-success,
+.btn-info,
+.btn-warning,
+.btn-danger,
+.btn-secondary {
+    --bs-btn-border-color: var(--bs-btn-bg);
+    --bs-btn-hover-border-color: var(--bs-btn-hover-bg);
+    --bs-btn-active-border-color: var(--bs-btn-active-bg);
+    --bs-btn-disabled-bg: var(--bs-btn-bg);
+    --bs-btn-disabled-border-color: var(--bs-btn-bg);
+}
+
+.btn-primary { --bs-btn-color: #fff; --bs-btn-bg: var(--bs-primary); --bs-btn-hover-bg: color-mix(in srgb, var(--bs-primary) 85%, black); --bs-btn-active-bg: color-mix(in srgb, var(--bs-primary) 80%, black); --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb); }
+.btn-success { --bs-btn-color: #fff; --bs-btn-bg: var(--bs-success); --bs-btn-hover-bg: color-mix(in srgb, var(--bs-success) 85%, black); --bs-btn-active-bg: color-mix(in srgb, var(--bs-success) 80%, black); --bs-btn-focus-shadow-rgb: var(--bs-success-rgb); }
+.btn-danger { --bs-btn-color: #fff; --bs-btn-bg: var(--bs-danger); --bs-btn-hover-bg: color-mix(in srgb, var(--bs-danger) 85%, black); --bs-btn-active-bg: color-mix(in srgb, var(--bs-danger) 80%, black); --bs-btn-focus-shadow-rgb: var(--bs-danger-rgb); }
+.btn-secondary { --bs-btn-color: #fff; --bs-btn-bg: var(--bs-secondary); --bs-btn-hover-bg: color-mix(in srgb, var(--bs-secondary) 85%, black); --bs-btn-active-bg: color-mix(in srgb, var(--bs-secondary) 80%, black); --bs-btn-focus-shadow-rgb: var(--bs-secondary-rgb); }
+.btn-info { --bs-btn-color: #000; --bs-btn-hover-color: #000; --bs-btn-active-color: #000; --bs-btn-disabled-color: #000; --bs-btn-bg: var(--bs-info); --bs-btn-hover-bg: color-mix(in srgb, var(--bs-info) 85%, white); --bs-btn-active-bg: color-mix(in srgb, var(--bs-info) 75%, white); --bs-btn-focus-shadow-rgb: var(--bs-info-rgb); }
+.btn-warning { --bs-btn-color: #000; --bs-btn-hover-color: #000; --bs-btn-active-color: #000; --bs-btn-disabled-color: #000; --bs-btn-bg: var(--bs-warning); --bs-btn-hover-bg: color-mix(in srgb, var(--bs-warning) 85%, white); --bs-btn-active-bg: color-mix(in srgb, var(--bs-warning) 75%, white); --bs-btn-focus-shadow-rgb: var(--bs-warning-rgb); }
+
+.btn-outline-primary { --bs-btn-color: var(--bs-primary); --bs-btn-border-color: var(--bs-primary); --bs-btn-hover-bg: var(--bs-primary); --bs-btn-hover-border-color: var(--bs-primary); --bs-btn-active-bg: var(--bs-primary); --bs-btn-active-border-color: var(--bs-primary); --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb); }
+.btn-outline-success { --bs-btn-color: var(--bs-success); --bs-btn-border-color: var(--bs-success); --bs-btn-hover-bg: var(--bs-success); --bs-btn-hover-border-color: var(--bs-success); --bs-btn-active-bg: var(--bs-success); --bs-btn-active-border-color: var(--bs-success); --bs-btn-focus-shadow-rgb: var(--bs-success-rgb); }
+.btn-outline-info { --bs-btn-color: var(--bs-info); --bs-btn-border-color: var(--bs-info); --bs-btn-hover-bg: var(--bs-info); --bs-btn-hover-border-color: var(--bs-info); --bs-btn-hover-color: #000; --bs-btn-active-bg: var(--bs-info); --bs-btn-active-border-color: var(--bs-info); --bs-btn-active-color: #000; --bs-btn-focus-shadow-rgb: var(--bs-info-rgb); }
+.btn-outline-warning { --bs-btn-color: var(--bs-warning); --bs-btn-border-color: var(--bs-warning); --bs-btn-hover-bg: var(--bs-warning); --bs-btn-hover-border-color: var(--bs-warning); --bs-btn-hover-color: #000; --bs-btn-active-bg: var(--bs-warning); --bs-btn-active-border-color: var(--bs-warning); --bs-btn-active-color: #000; --bs-btn-focus-shadow-rgb: var(--bs-warning-rgb); }
+.btn-outline-danger { --bs-btn-color: var(--bs-danger); --bs-btn-border-color: var(--bs-danger); --bs-btn-hover-bg: var(--bs-danger); --bs-btn-hover-border-color: var(--bs-danger); --bs-btn-active-bg: var(--bs-danger); --bs-btn-active-border-color: var(--bs-danger); --bs-btn-focus-shadow-rgb: var(--bs-danger-rgb); }
+.btn-outline-secondary { --bs-btn-color: var(--bs-secondary); --bs-btn-border-color: var(--bs-secondary); --bs-btn-hover-bg: var(--bs-secondary); --bs-btn-hover-border-color: var(--bs-secondary); --bs-btn-active-bg: var(--bs-secondary); --bs-btn-active-border-color: var(--bs-secondary); --bs-btn-focus-shadow-rgb: var(--bs-secondary-rgb); }
+
+/* แท็บ "ขาย/แลกเปลี่ยน" หน้าแรก — .nav-pills ไม่ได้ผูกกับ --bs-primary เช่นกัน */
+.nav-pills {
+    --bs-nav-pills-link-active-bg: var(--bs-primary);
+    --bs-nav-pills-link-active-color: #fff;
+}
