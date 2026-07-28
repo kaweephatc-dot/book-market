@@ -3,14 +3,18 @@
 @section('title', $book->title)
 
 @section('content')
-<div class="row">
+<a href="{{ route('home') }}" class="btn btn-link ps-0 mb-2">← กลับหน้าหลัก</a>
+
+<div class="card border-0 shadow-sm">
+<div class="card-body p-4">
+<div class="row g-4">
     {{-- รูปภาพ --}}
     <div class="col-md-6">
         @if ($book->images->count() > 0)
             {{-- รูปหลัก (คลิกเพื่อขยาย) --}}
             <img id="mainImage"
                  src="{{ asset('storage/' . $book->coverImage()->image_path) }}"
-                 class="d-block w-100 rounded shadow-sm mb-2"
+                 class="d-block w-100 rounded-3 shadow-sm mb-2"
                  style="height: 400px; object-fit: cover; cursor: pointer;"
                  alt="{{ $book->title }}"
                  data-bs-toggle="modal"
@@ -21,7 +25,7 @@
                 @foreach ($book->images as $index => $image)
                     <div class="position-relative">
                         <img src="{{ asset('storage/' . $image->image_path) }}"
-                             class="rounded border thumbnail-img {{ $index === 0 ? 'border-primary border-3' : '' }}"
+                             class="rounded-2 border thumbnail-img {{ $index === 0 ? 'border-primary border-3' : '' }}"
                              style="width: 70px; height: 70px; object-fit: cover; cursor: pointer;"
                              onclick="changeMainImage(this, '{{ asset('storage/' . $image->image_path) }}')"
                              alt="รูปที่ {{ $index + 1 }}">
@@ -32,7 +36,7 @@
                 @endforeach
             </div>
         @else
-            <div class="bg-light d-flex align-items-center justify-content-center rounded" style="height: 400px;">
+            <div class="bg-light d-flex align-items-center justify-content-center rounded-3" style="height: 400px;">
                 <span class="text-muted">ไม่มีรูป</span>
             </div>
         @endif
@@ -40,22 +44,22 @@
 
     {{-- รายละเอียด --}}
     <div class="col-md-6">
-        <h2>{{ $book->title }}</h2>
+        <h2 class="fw-bold">{{ $book->title }}</h2>
         @if ($book->author)
             <p class="text-muted">โดย {{ $book->author }}</p>
         @endif
 
-        <div class="mb-3">
-            <span class="badge bg-secondary">{{ $book->category }}</span>
+        <div class="mb-3 d-flex gap-2">
+            <span class="badge bg-secondary-subtle text-secondary-emphasis">{{ $book->category }}</span>
             @if ($book->type === 'sale')
-                <span class="badge bg-success">ขาย</span>
+                <span class="badge bg-success-subtle text-success-emphasis">ขาย</span>
             @else
-                <span class="badge bg-info">แลกเปลี่ยน</span>
+                <span class="badge bg-info-subtle text-info-emphasis">แลกเปลี่ยน</span>
             @endif
         </div>
 
         @if ($book->type === 'sale')
-            <h3 class="text-primary mb-3">฿{{ number_format($book->price, 2) }}</h3>
+            <h3 class="text-primary fw-bold mb-3">฿{{ number_format($book->price, 2) }}</h3>
         @endif
 
         {{-- ผลวิเคราะห์ AI (คะแนนเฉลี่ย) --}}
@@ -152,8 +156,9 @@
             @endif
         @endauth
 
-        <a href="{{ route('home') }}" class="btn btn-link w-100 mt-2">← กลับหน้าหลัก</a>
     </div>
+</div>
+</div>
 </div>
 
 {{-- Modal ขยายรูปเต็ม --}}

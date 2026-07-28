@@ -10,33 +10,32 @@
     <div class="alert alert-danger">{{ session('error') }}</div>
 @endif
 
+{{-- แบนเนอร์ข้อมูลร้าน --}}
+<div class="shop-banner rounded-4 p-4 p-md-5 mb-4 text-white d-flex align-items-center gap-4 flex-wrap">
+    @if ($shop->avatar)
+        <img src="{{ asset('storage/' . $shop->avatar) }}" class="rounded-circle border border-3 border-white" style="width: 100px; height: 100px; object-fit: cover;" alt="">
+    @else
+        <div class="rounded-circle bg-white bg-opacity-25 d-flex align-items-center justify-content-center" style="width: 100px; height: 100px; font-size: 40px;">🏪</div>
+    @endif
+    <div>
+        <h3 class="fw-bold mb-1">{{ $shop->shop_name ?? $shop->name }}</h3>
+        @php $avg = $shop->averageRating(); $count = $shop->reviewCount(); @endphp
+        @if ($count > 0)
+            <div>
+                @for ($i = 1; $i <= 5; $i++)
+                    <span style="color: {{ $i <= round($avg) ? '#ffc107' : 'rgba(255,255,255,.4)' }};">★</span>
+                @endfor
+                <span class="small opacity-75 ms-1">{{ $avg }} จาก {{ $count }} รีวิว</span>
+            </div>
+        @else
+            <div class="small opacity-75">ยังไม่มีรีวิว</div>
+        @endif
+    </div>
+</div>
+
 <div class="row">
     {{-- ข้อมูลร้าน --}}
     <div class="col-md-4">
-        <div class="card shadow-sm mb-3">
-            <div class="card-body text-center">
-                @if ($shop->avatar)
-                    <img src="{{ asset('storage/' . $shop->avatar) }}" class="rounded-circle mb-2" style="width: 90px; height: 90px; object-fit: cover;" alt="">
-                @else
-                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 90px; height: 90px; font-size: 36px;">🏪</div>
-                @endif
-                <h5>{{ $shop->shop_name ?? $shop->name }}</h5>
-
-                {{-- ดาวเฉลี่ย --}}
-                @php $avg = $shop->averageRating(); $count = $shop->reviewCount(); @endphp
-                @if ($count > 0)
-                    <div class="mb-1">
-                        @for ($i = 1; $i <= 5; $i++)
-                            <span style="color: {{ $i <= round($avg) ? '#ffc107' : '#ddd' }};">★</span>
-                        @endfor
-                    </div>
-                    <div class="text-muted small">{{ $avg }} จาก {{ $count }} รีวิว</div>
-                @else
-                    <div class="text-muted small">ยังไม่มีรีวิว</div>
-                @endif
-            </div>
-        </div>
-
         @php
             $isOwnShop = auth()->check() && auth()->id() === $shop->id;
             $isAdminViewer = auth()->check() && auth()->user()->isAdmin();
@@ -108,12 +107,12 @@
 
         {{-- หนังสือของร้าน --}}
         <h5 class="mb-3 mt-4">📚 หนังสือของร้าน</h5>
-        <div class="row g-2">
+        <div class="row g-3">
             @forelse ($shop->books as $book)
                 <div class="col-6 col-md-4">
-                    <div class="card h-100">
+                    <div class="card h-100 border-0 shadow-sm">
                         @if ($book->images->count() > 0)
-                            <img src="{{ asset('storage/' . $book->coverImage()->image_path) }}" class="card-img-top" style="height: 120px; object-fit: cover;" alt="">
+                            <img src="{{ asset('storage/' . $book->coverImage()->image_path) }}" class="card-img-top" style="height: 130px; object-fit: cover;" alt="">
                         @endif
                         <div class="card-body p-2">
                             <div class="small fw-bold text-truncate">{{ $book->title }}</div>
@@ -127,6 +126,12 @@
         </div>
     </div>
 </div>
+
+<style>
+    .shop-banner {
+        background: linear-gradient(135deg, var(--bs-primary), color-mix(in srgb, var(--bs-primary) 70%, #6f42c1));
+    }
+</style>
 
 {{-- Modal รายงานร้าน --}}
 @auth
