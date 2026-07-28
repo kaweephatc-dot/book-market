@@ -6,15 +6,14 @@
 <h3 class="mb-4">🚩 จัดการรายงาน</h3>
 
 {{-- รายงานที่รอตรวจสอบ --}}
-@if ($pendingReports->count() > 0)
-    <div class="card border-danger mb-4">
-        <div class="card-header bg-danger text-white">
-            รายงานที่รอตรวจสอบ ({{ $pendingReports->count() }})
-        </div>
-        <div class="card-body">
-            @foreach ($pendingReports as $report)
-                <div class="border rounded p-3 mb-2">
-                    <div class="d-flex justify-content-between align-items-start">
+<div class="card border-danger mb-4" id="pendingReportsCard" style="{{ $pendingReports->count() > 0 ? '' : 'display: none;' }}">
+    <div class="card-header bg-danger text-white">
+        รายงานที่รอตรวจสอบ (<span data-pending-count>{{ $pendingReports->count() }}</span>)
+    </div>
+    <div class="card-body" data-reports-list>
+        @foreach ($pendingReports as $report)
+            <div class="border rounded p-3 mb-2" data-report-id="{{ $report->id }}">
+                <div class="d-flex justify-content-between align-items-start">
                         <div class="flex-grow-1">
                             @unless ($report->seen_at)
                                 <span class="badge bg-danger">ใหม่</span>
@@ -116,11 +115,10 @@
                     @endif
                 </div>
             @endforeach
-        </div>
     </div>
-@else
-    <div class="alert alert-success">ไม่มีรายงานที่รอตรวจสอบ 🎉</div>
-@endif
+</div>
+
+<div class="alert alert-success" data-reports-empty-state style="{{ $pendingReports->count() > 0 ? 'display: none;' : '' }}">ไม่มีรายงานที่รอตรวจสอบ 🎉</div>
 
 {{-- ประวัติรายงานที่จัดการแล้ว --}}
 <div class="card shadow-sm">
