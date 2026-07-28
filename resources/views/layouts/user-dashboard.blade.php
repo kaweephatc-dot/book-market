@@ -35,91 +35,113 @@
         {{-- Sidebar --}}
         <ul class="navbar-nav sidebar sidebar-dark accordion" id="accordionSidebar">
 
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ route('profile.index') }}">
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ route('home') }}">
                 <div class="sidebar-brand-icon">📚</div>
-                <div class="sidebar-brand-text mx-3">บัญชีของฉัน</div>
+                <div class="sidebar-brand-text mx-3">ตลาดหนังสือมือสอง</div>
             </a>
 
             <hr class="sidebar-divider my-0">
 
-            @unless (auth()->user()->isAdmin())
+            <div class="sidebar-heading">หน้าร้าน</div>
 
-                <li class="nav-item {{ request()->routeIs('report-chat.*') ? 'active' : '' }}">
-                    <a class="nav-link position-relative" href="{{ route('report-chat.index') }}">
-                        <i>📨</i>
-                        <span>ข้อความจากแอดมิน</span>
-                        <span id="reportMessageUnreadBadge" class="badge badge-counter bg-danger {{ (($unreadReportMessageCount ?? 0) > 0) ? '' : 'd-none' }}">
-                            {{ (($unreadReportMessageCount ?? 0) > 99) ? '99+' : ($unreadReportMessageCount ?? 0) }}
-                        </span>
-                    </a>
-                </li>
-
-                <li class="nav-item {{ request()->routeIs('books.create') ? 'active' : '' }}">
-                    <a class="nav-link" href="{{ route('books.create') }}">
-                        <i>➕</i>
-                        <span>ลงประกาศหนังสือ</span>
-                    </a>
-                </li>
-
-                <li class="nav-item {{ request()->routeIs('books.my') || request()->routeIs('books.edit') ? 'active' : '' }}">
-                    <a class="nav-link" href="{{ route('books.my') }}">
-                        <i>📚</i>
-                        <span>หนังสือของฉัน</span>
-                    </a>
-                </li>
-
-                <li class="nav-item {{ request()->routeIs('chat.*') ? 'active' : '' }}" data-current-user-id="{{ auth()->id() }}">
-                    <a class="nav-link position-relative" href="{{ route('chat.index') }}">
-                        <i>💬</i>
-                        <span>ข้อความ</span>
-                        <span id="chatUnreadBadge" class="badge badge-counter bg-danger {{ (isset($unreadMessageCount) && $unreadMessageCount > 0) ? '' : 'd-none' }}">
-                            {{ isset($unreadMessageCount) && $unreadMessageCount > 99 ? '99+' : ($unreadMessageCount ?? 0) }}
-                        </span>
-                    </a>
-                </li>
-
-                <li class="nav-item {{ request()->routeIs('payment.index') ? 'active' : '' }}">
-                    <a class="nav-link" href="{{ route('payment.index') }}">
-                        <i>💳</i>
-                        <span>การชำระเงิน</span>
-                    </a>
-                </li>
-
-                <li class="nav-item {{ request()->routeIs('orders.index') ? 'active' : '' }}">
-                    <a class="nav-link" href="{{ route('orders.index') }}">
-                        <i>🧾</i>
-                        <span>คำสั่งซื้อ</span>
-                    </a>
-                </li>
-
-                <hr class="sidebar-divider">
-            @endunless
-
-            <li class="nav-item {{ request()->routeIs('profile.*') ? 'active' : '' }}">
-                <a class="nav-link" href="{{ route('profile.index') }}">
-                    <i>👤</i>
-                    <span>โปรไฟล์</span>
+            <li class="nav-item {{ request()->routeIs('home') ? 'active' : '' }}">
+                <a class="nav-link" href="{{ route('home') }}">
+                    <i>🏠</i>
+                    <span>หน้าแรก</span>
                 </a>
             </li>
 
             <hr class="sidebar-divider">
 
-            <li class="nav-item">
-                <a class="nav-link" href="{{ route('home') }}">
-                    <i>🏠</i>
-                    <span>กลับไปหน้าร้าน</span>
-                </a>
-            </li>
+            @guest
+                <li class="nav-item {{ request()->routeIs('login') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('login') }}">
+                        <i>🔑</i>
+                        <span>เข้าสู่ระบบ</span>
+                    </a>
+                </li>
 
-            <li class="nav-item">
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="nav-link btn btn-link text-start w-100 border-0">
-                        <i>🚪</i>
-                        <span>ออกจากระบบ</span>
-                    </button>
-                </form>
-            </li>
+                <li class="nav-item {{ request()->routeIs('register') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('register') }}">
+                        <i>📝</i>
+                        <span>สมัครสมาชิก</span>
+                    </a>
+                </li>
+            @else
+                @unless (auth()->user()->isAdmin())
+
+                    <div class="sidebar-heading">บัญชีของฉัน</div>
+
+                    <li class="nav-item {{ request()->routeIs('report-chat.*') ? 'active' : '' }}">
+                        <a class="nav-link position-relative" href="{{ route('report-chat.index') }}">
+                            <i>📨</i>
+                            <span>ข้อความจากแอดมิน</span>
+                            <span id="reportMessageUnreadBadge" class="badge badge-counter bg-danger {{ (($unreadReportMessageCount ?? 0) > 0) ? '' : 'd-none' }}">
+                                {{ (($unreadReportMessageCount ?? 0) > 99) ? '99+' : ($unreadReportMessageCount ?? 0) }}
+                            </span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item {{ request()->routeIs('books.create') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('books.create') }}">
+                            <i>➕</i>
+                            <span>ลงประกาศหนังสือ</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item {{ request()->routeIs('books.my') || request()->routeIs('books.edit') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('books.my') }}">
+                            <i>📚</i>
+                            <span>หนังสือของฉัน</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item {{ request()->routeIs('chat.*') ? 'active' : '' }}" data-current-user-id="{{ auth()->id() }}">
+                        <a class="nav-link position-relative" href="{{ route('chat.index') }}">
+                            <i>💬</i>
+                            <span>ข้อความ</span>
+                            <span id="chatUnreadBadge" class="badge badge-counter bg-danger {{ (isset($unreadMessageCount) && $unreadMessageCount > 0) ? '' : 'd-none' }}">
+                                {{ isset($unreadMessageCount) && $unreadMessageCount > 99 ? '99+' : ($unreadMessageCount ?? 0) }}
+                            </span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item {{ request()->routeIs('payment.index') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('payment.index') }}">
+                            <i>💳</i>
+                            <span>การชำระเงิน</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item {{ request()->routeIs('orders.index') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('orders.index') }}">
+                            <i>🧾</i>
+                            <span>คำสั่งซื้อ</span>
+                        </a>
+                    </li>
+
+                    <hr class="sidebar-divider">
+                @endunless
+
+                <li class="nav-item {{ request()->routeIs('profile.*') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('profile.index') }}">
+                        <i>👤</i>
+                        <span>โปรไฟล์</span>
+                    </a>
+                </li>
+
+                <hr class="sidebar-divider">
+
+                <li class="nav-item">
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="nav-link btn btn-link text-start w-100 border-0">
+                            <i>🚪</i>
+                            <span>ออกจากระบบ</span>
+                        </button>
+                    </form>
+                </li>
+            @endguest
 
             <hr class="sidebar-divider d-none d-md-block">
 
@@ -140,9 +162,15 @@
                     </button>
 
                     <ul class="navbar-nav ms-auto">
-                        <li class="nav-item">
-                            <span class="nav-link">👤 {{ Auth::user()->name }}</span>
-                        </li>
+                        @auth
+                            <li class="nav-item">
+                                <span class="nav-link">👤 {{ Auth::user()->name }}</span>
+                            </li>
+                        @else
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('login') }}">เข้าสู่ระบบ</a>
+                            </li>
+                        @endauth
                     </ul>
                 </nav>
                 {{-- End of Topbar --}}
