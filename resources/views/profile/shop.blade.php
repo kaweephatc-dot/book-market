@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.user-dashboard')
 
 @section('title', $shop->shop_name ?? $shop->name)
 
