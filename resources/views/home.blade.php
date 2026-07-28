@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.user-dashboard')
 
 @section('title', 'หน้าหลัก')
 
@@ -74,7 +74,7 @@
 @if ($books->count() > 0)
     <div id="bookContainer" class="row g-4">
         @foreach ($books as $book)
-            <div class="col-6 col-md-4 col-lg-3 book-item">
+            <div class="col-6 col-md-4 col-lg-4 col-xl-3 book-item">
                 <div class="card book-card h-100 border-0 shadow-sm">
                     <div class="position-relative">
                         @if ($book->images->count() > 0)
@@ -149,7 +149,7 @@
 
         if (view === 'list') {
             items.forEach(item => {
-                item.classList.remove('col-6', 'col-md-4', 'col-lg-3');
+                item.classList.remove('col-6', 'col-md-4', 'col-lg-4', 'col-xl-3');
                 item.classList.add('col-12');
             });
             listBtn.classList.add('active');
@@ -157,7 +157,7 @@
         } else {
             items.forEach(item => {
                 item.classList.remove('col-12');
-                item.classList.add('col-6', 'col-md-4', 'col-lg-3');
+                item.classList.add('col-6', 'col-md-4', 'col-lg-4', 'col-xl-3');
             });
             gridBtn.classList.add('active');
             listBtn.classList.remove('active');
