@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.user-dashboard')
 
 @section('title', 'สมัครเป็นร้านค้า')
 
