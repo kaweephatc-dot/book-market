@@ -19,8 +19,8 @@ class AppServiceProvider extends ServiceProvider
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
 
-        // แชร์จำนวนข้อความที่ยังไม่อ่านไปทุกหน้า (สำหรับ navbar)
-        \Illuminate\Support\Facades\View::composer('layouts.app', function ($view) {
+        // แชร์จำนวนข้อความที่ยังไม่อ่านไปทุกหน้า (สำหรับ navbar / sidebar badge)
+        \Illuminate\Support\Facades\View::composer(['layouts.app', 'layouts.user-dashboard'], function ($view) {
             $unreadCount = 0;
             $unreadReportMessageCount = 0;
 
