@@ -61,6 +61,9 @@ class ReportChatController extends Controller
             'message' => $request->message,
         ]);
 
+        // อัปเดตเวลาของห้องแชท (ให้ขึ้นไปอยู่บนสุดในรายการ เหมือนแชทซื้อขาย)
+        $chat->touch();
+
         $message->load(['user', 'reportChat']);
 
         broadcast(new ReportMessageSent($message))->toOthers();

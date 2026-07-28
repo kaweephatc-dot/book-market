@@ -83,6 +83,11 @@ function initChatRoom(root) {
     const currentUserId = Number(root.dataset.currentUserId);
     const readUrl = root.dataset.readUrl;
 
+    // เลื่อนไปข้อความล่าสุดล่างสุดทันทีที่เปิดหน้าแชท (ไม่ผูกกับ Echo เพื่อให้ทำงานแม้ realtime ต่อไม่ได้)
+    if (chatBox) {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
     if (!chatBox || !channel || !event || !window.Echo) {
         return;
     }

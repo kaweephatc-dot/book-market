@@ -222,6 +222,9 @@ class AdminController extends Controller
             'message' => $request->message,
         ]);
 
+        // อัปเดตเวลาของห้องแชท (ให้ขึ้นไปอยู่บนสุดในรายการฝั่งผู้ใช้)
+        $chat->touch();
+
         $message->load(['user', 'reportChat']);
 
         broadcast(new ReportMessageSent($message))->toOthers();
