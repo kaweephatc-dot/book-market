@@ -9,7 +9,7 @@
 </div>
 
 @if (session('success'))
-    <div class="alert alert-success">{{ session('success') }}</div>
+    <div class="alert alert-success d-none" data-flash="success">{{ session('success') }}</div>
 @endif
 
 @if ($books->count() > 0)
@@ -65,13 +65,13 @@
                                 <a href="{{ route('books.edit', $book) }}" class="btn btn-sm btn-outline-primary">แก้ไข</a>
 
                                 @if ($book->status === 'available')
-                                    <form method="POST" action="{{ route('books.markSold', $book) }}" onsubmit="return confirm('ยืนยันว่าขาย/แลกเรียบร้อยแล้ว?')">
+                                    <form method="POST" action="{{ route('books.markSold', $book) }}" data-confirm="ยืนยันว่าขาย/แลกเรียบร้อยแล้ว?">
                                         @csrf
                                         <button type="submit" class="btn btn-sm btn-outline-success">ขายแล้ว</button>
                                     </form>
                                 @endif
 
-                                <form method="POST" action="{{ route('books.destroy', $book) }}" onsubmit="return confirm('ต้องการลบหนังสือเล่มนี้?')">
+                                <form method="POST" action="{{ route('books.destroy', $book) }}" data-confirm="ต้องการลบหนังสือเล่มนี้?">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-sm btn-outline-danger">ลบ</button>

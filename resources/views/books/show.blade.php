@@ -133,7 +133,7 @@
                 <div class="alert alert-secondary text-center mb-0">นี่คือหนังสือของคุณ</div>
             @else
                 @if ($book->status === 'available')
-                    <form method="POST" action="{{ route('orders.store', $book) }}" onsubmit="return confirm('ยืนยันการสั่งซื้อ/แลกหนังสือเล่มนี้?')">
+                    <form method="POST" action="{{ route('orders.store', $book) }}" data-confirm="ยืนยันการสั่งซื้อ/แลกหนังสือเล่มนี้?">
                         @csrf
                         <button type="submit" class="btn btn-success w-100 mb-2">
                             {{ $book->type === 'sale' ? '🛒 สั่งซื้อ' : '🔄 ขอแลกเปลี่ยน' }}

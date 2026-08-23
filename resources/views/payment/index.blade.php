@@ -8,7 +8,7 @@
         <h3 class="mb-4">💳 ช่องทางการชำระเงินของฉัน</h3>
 
         @if (session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
+            <div class="alert alert-success d-none" data-flash="success">{{ session('success') }}</div>
         @endif
 
         {{-- รายการช่องทางที่มี --}}
@@ -27,7 +27,7 @@
                                 <p class="mb-1"><strong>ชื่อบัญชี:</strong> {{ $method->account_name }}</p>
                             @endif
 
-                            <form method="POST" action="{{ route('payment.destroy', $method) }}" class="mt-2" onsubmit="return confirm('ต้องการลบช่องทางนี้?')">
+                            <form method="POST" action="{{ route('payment.destroy', $method) }}" class="mt-2" data-confirm="ต้องการลบช่องทางนี้?">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-outline-danger">ลบ</button>

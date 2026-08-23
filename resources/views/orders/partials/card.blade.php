@@ -97,7 +97,7 @@
                         @if ($role === 'seller')
                             <span class="badge bg-info">ส่งของแล้ว รอผู้ซื้อยืนยันรับ</span>
                         @else
-                            <form method="POST" action="{{ route('orders.received', $order) }}" onsubmit="return confirm('ยืนยันว่าได้รับหนังสือเรียบร้อยแล้ว?')">
+                            <form method="POST" action="{{ route('orders.received', $order) }}" data-confirm="ยืนยันว่าได้รับหนังสือเรียบร้อยแล้ว?">
                                 @csrf
                                 <button class="btn btn-sm btn-success">📬 ยืนยันได้รับของแล้ว</button>
                             </form>
@@ -106,7 +106,7 @@
 
                     {{-- ยกเลิก (ก่อนเสร็จ) --}}
                     @if (in_array($order->status, ['pending', 'accepted', 'paid', 'shipping']))
-                        <form method="POST" action="{{ route('orders.cancel', $order) }}" onsubmit="return confirm('ยกเลิกออเดอร์นี้?')">
+                        <form method="POST" action="{{ route('orders.cancel', $order) }}" data-confirm="ยกเลิกออเดอร์นี้?">
                             @csrf
                             <button class="btn btn-sm btn-outline-danger">ยกเลิก</button>
                         </form>

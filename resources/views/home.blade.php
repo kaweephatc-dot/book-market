@@ -5,7 +5,7 @@
 @section('content')
 
 @if (session('success'))
-    <div class="alert alert-success">{{ session('success') }}</div>
+    <div class="alert alert-success d-none" data-flash="success">{{ session('success') }}</div>
 @endif
 
 {{-- Hero: แบนเนอร์ต้อนรับ + ค้นหา --}}
