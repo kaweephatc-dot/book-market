@@ -30,7 +30,19 @@ class AdminController extends Controller
             'pending_reports' => Report::where('status', 'pending')->count(),
         ];
 
-        return view('admin.dashboard', compact('stats'));
+        // กราฟออเดอร์รายเดือน ย้อนหลัง 12 เดือน — แยกจาก $stats เดิม เดือนไหนไม่มีออเดอร์ให้เป็น 0
+        $monthlyOrders = collect(range(11, 0))->map(function ($i) {
+            $month = now()->subMonths($i);
+
+            return [
+                'label' => $month->format('M Y'),
+                'count' => Order::whereYear('created_at', $month->year)
+                    ->whereMonth('created_at', $month->month)
+                    ->count(),
+            ];
+        });
+
+        return view('admin.dashboard', compact('stats', 'monthlyOrders'));
     }
 
     // หน้าจัดการผู้ใช้
