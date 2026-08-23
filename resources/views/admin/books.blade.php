@@ -51,7 +51,7 @@
                         <td>
                             <div class="d-flex gap-1">
                                 <a href="{{ route('books.show', $book) }}" target="_blank" class="btn btn-sm btn-outline-secondary">ดู</a>
-                                <form method="POST" action="{{ route('admin.books.delete', $book) }}" onsubmit="return confirm('ต้องการลบหนังสือนี้?')">
+                                <form method="POST" action="{{ route('admin.books.delete', $book) }}" data-confirm="ต้องการลบหนังสือนี้?">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-sm btn-outline-danger">ลบ</button>

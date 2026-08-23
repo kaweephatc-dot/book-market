@@ -37,8 +37,8 @@
                             <form method="POST" action="{{ route('admin.orders.resolve', $order) }}">
                                 @csrf
                                 <p class="small mb-2">ตัดสิน:</p>
-                                <button type="submit" name="resolution" value="completed" class="btn btn-sm btn-success w-100 mb-2" onclick="return confirm('ตัดสินว่าซื้อขายสำเร็จ?')">✓ ให้ถือว่าสำเร็จ</button>
-                                <button type="submit" name="resolution" value="cancelled" class="btn btn-sm btn-danger w-100" onclick="return confirm('ตัดสินให้ยกเลิก?')">✗ ยกเลิกออเดอร์</button>
+                                <button type="submit" name="resolution" value="completed" class="btn btn-sm btn-success w-100 mb-2" data-confirm="ตัดสินว่าซื้อขายสำเร็จ?">✓ ให้ถือว่าสำเร็จ</button>
+                                <button type="submit" name="resolution" value="cancelled" class="btn btn-sm btn-danger w-100" data-confirm="ตัดสินให้ยกเลิก?">✗ ยกเลิกออเดอร์</button>
                             </form>
                         </div>
                     </div>

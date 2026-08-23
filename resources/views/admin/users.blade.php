@@ -44,7 +44,7 @@
                                         {{ $user->is_banned ? 'ปลดแบน' : 'แบน' }}
                                     </button>
                                 </form>
-                                <form method="POST" action="{{ route('admin.users.delete', $user) }}" onsubmit="return confirm('ต้องการลบผู้ใช้นี้?')">
+                                <form method="POST" action="{{ route('admin.users.delete', $user) }}" data-confirm="ต้องการลบผู้ใช้นี้?">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-sm btn-outline-danger">ลบ</button>

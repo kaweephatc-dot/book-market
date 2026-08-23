@@ -32,7 +32,7 @@
         </form>
     @endif
 
-    <form method="POST" action="{{ route('admin.report.chat.delete', $chat) }}" onsubmit="return confirm('ลบแชทนี้ถาวร?')">
+    <form method="POST" action="{{ route('admin.report.chat.delete', $chat) }}" data-confirm="ลบแชทนี้ถาวร?">
         @csrf
         @method('DELETE')
         <button class="btn btn-sm btn-outline-danger">ลบแชท</button>
