@@ -26,6 +26,7 @@
         .sidebar.toggled .sidebar-heading { display: none; }
         .sidebar.toggled .nav-item .nav-link i { margin-right: 0; font-size: 1.3rem; }
     </style>
+    <link href="{{ asset('css/modal-form-theme.css') }}" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @vite(['resources/js/app.js'])
 </head>
