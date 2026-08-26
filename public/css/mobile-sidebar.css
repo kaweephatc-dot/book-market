@@ -1,0 +1,81 @@
+/*
+ * mobile-sidebar.css — บนจอมือถือเปลี่ยน sidebar ของ SB Admin 2 จาก "คอลัมน์ที่กินความกว้างจริง"
+ * ให้เป็น drawer ที่เลื่อนทับเนื้อหา เพื่อคืนความกว้างทั้งหมดให้เนื้อหาหลัก
+ * ทำงานคู่กับ public/js/mobile-sidebar.js (ปุ่ม #mobileSidebarToggle บน topbar)
+ */
+
+@media (max-width: 767.98px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 1045;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        transform: translateX(-100%);
+        transition: transform .25s ease;
+    }
+
+    /* บนมือถือไม่ใช้โหมดยุบเหลือไอคอน (sidebar.js ใส่ .toggled ให้อัตโนมัติเมื่อจอ < 480px)
+       เพราะ drawer ซ่อนอยู่แล้ว กางออกมาทีต้องอ่าน label ได้เต็ม */
+    .sidebar,
+    .sidebar.toggled {
+        width: 14rem !important;
+    }
+
+    .sidebar.toggled .nav-item .nav-link {
+        width: 14rem;
+    }
+
+    .sidebar.toggled .nav-item .nav-link span,
+    .sidebar.toggled .sidebar-heading {
+        display: inline;
+    }
+
+    .sidebar.toggled .nav-item .nav-link i {
+        margin-right: .25rem;
+        font-size: 1rem;
+    }
+
+    body.sidebar-open .sidebar {
+        transform: none;
+    }
+
+    .sidebar-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 1040;
+        background: rgba(15, 20, 45, .45);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity .2s ease, visibility .2s ease;
+    }
+
+    body.sidebar-open .sidebar-backdrop {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    /* ล็อกการเลื่อนพื้นหลังตอน drawer เปิดอยู่ */
+    body.sidebar-open {
+        overflow: hidden;
+    }
+
+    /* คืนพื้นที่ขอบให้เนื้อหา จอ 360px กินขอบข้างละ 1.5rem แล้วเหลือน้อยเกินไป */
+    #content-wrapper .container-fluid {
+        padding-left: .85rem;
+        padding-right: .85rem;
+    }
+
+    .topbar {
+        margin-bottom: 1rem !important;
+    }
+}
+
+/* จอใหญ่ไม่ต้องมี backdrop ค้างอยู่ใน DOM ให้เห็น */
+@media (min-width: 768px) {
+    .sidebar-backdrop {
+        display: none;
+    }
+}

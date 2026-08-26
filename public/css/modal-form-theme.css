@@ -93,3 +93,57 @@
 .form-control[type="file"]::file-selector-button:hover {
     background-color: #dde1fc;
 }
+
+/* ปุ่มย้อนกลับ — ใช้แทนลิงก์ข้อความ "← กลับ..." ที่กระจายอยู่หลายหน้า
+   ไม่ใช้ .btn ของ Bootstrap เพื่อไม่ให้ padding/สีของธีมพื้นฐานสองตัวมาชนกัน */
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .45rem 1rem;
+    border: 1px solid #dfe3f0;
+    border-radius: 2rem;
+    background-color: #fff;
+    color: #3a3b52;
+    font-size: .9rem;
+    font-weight: 500;
+    line-height: 1.4;
+    text-decoration: none;
+    box-shadow: 0 1px 2px rgba(31, 45, 110, .06);
+    transition: color .15s ease, border-color .15s ease, background-color .15s ease, box-shadow .15s ease;
+}
+
+.btn-back:hover,
+.btn-back:focus {
+    color: #3248f2;
+    border-color: #3248f2;
+    background-color: #f2f4ff;
+    box-shadow: 0 2px 8px rgba(50, 72, 242, .15);
+    text-decoration: none;
+}
+
+.btn-back:focus-visible {
+    outline: 2px solid #3248f2;
+    outline-offset: 2px;
+}
+
+/* ลูกศรขยับซ้ายเล็กน้อยตอน hover สื่อทิศทางย้อนกลับ */
+.btn-back-arrow {
+    display: inline-block;
+    font-size: 1.05rem;
+    line-height: 1;
+    transition: transform .15s ease;
+}
+
+.btn-back:hover .btn-back-arrow {
+    transform: translateX(-3px);
+}
+
+/* badge สีอ่อน — ธีมนี้เป็น Bootstrap 5.1.3 ซึ่งยังไม่มี .bg-*-subtle / .text-*-emphasis
+   (คลาสพวกนั้นเพิ่มเข้ามาใน 5.3) badge ที่เรียกใช้จึงกลายเป็นพื้นโปร่งตัวหนังสือขาว อ่านไม่ออก */
+.badge-soft-secondary { background-color: #e9ecf2; color: #4a5164; }
+.badge-soft-primary   { background-color: #dbe0fe; color: #22319e; }
+.badge-soft-success   { background-color: #d1f5e2; color: #0a6b3d; }
+.badge-soft-info      { background-color: #cff2f8; color: #08616f; }
+.badge-soft-warning   { background-color: #fff0cd; color: #7a5600; }
+.badge-soft-danger    { background-color: #ffdcdc; color: #96232c; }

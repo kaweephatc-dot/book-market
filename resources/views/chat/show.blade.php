@@ -82,7 +82,7 @@
             </div>
         </div>
 
-        <a href="{{ route('chat.index') }}" class="btn btn-link mt-2">← กลับไปรายการแชท</a>
+        <a href="{{ route('chat.index') }}" class="btn-back mt-2"><span class="btn-back-arrow">←</span> กลับไปรายการแชท</a>
     </div>
 </div>
 @endsection

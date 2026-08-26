@@ -3,7 +3,7 @@
 @section('title', $book->title)
 
 @section('content')
-<a href="{{ route('home') }}" class="btn btn-link ps-0 mb-2">← กลับหน้าหลัก</a>
+<a href="{{ route('home') }}" class="btn-back mb-3"><span class="btn-back-arrow">←</span> กลับหน้าหลัก</a>
 
 <div class="card border-0 shadow-sm">
 <div class="card-body p-4">
@@ -50,11 +50,11 @@
         @endif
 
         <div class="mb-3 d-flex gap-2">
-            <span class="badge bg-secondary-subtle text-secondary-emphasis">{{ $book->category }}</span>
+            <span class="badge badge-soft-secondary">{{ $book->category }}</span>
             @if ($book->type === 'sale')
-                <span class="badge bg-success-subtle text-success-emphasis">ขาย</span>
+                <span class="badge badge-soft-success">ขาย</span>
             @else
-                <span class="badge bg-info-subtle text-info-emphasis">แลกเปลี่ยน</span>
+                <span class="badge badge-soft-info">แลกเปลี่ยน</span>
             @endif
         </div>
 

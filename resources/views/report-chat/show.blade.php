@@ -5,7 +5,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4>💬 แชทกับผู้ดูแลระบบ</h4>
-    <a href="{{ route('report-chat.index') }}" class="btn btn-sm btn-secondary">← กลับ</a>
+    <a href="{{ route('report-chat.index') }}" class="btn-back"><span class="btn-back-arrow">←</span> กลับ</a>
 </div>
 
 {{-- เรื่องที่เกี่ยวข้อง --}}

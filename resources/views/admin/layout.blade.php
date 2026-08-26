@@ -29,6 +29,7 @@
         .sidebar.toggled .nav-item .nav-link i { margin-right: 0; font-size: 1.3rem; }
     </style>
     <link href="{{ asset('css/modal-form-theme.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/mobile-sidebar.css') }}" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @vite(['resources/js/app.js'])
 </head>
@@ -121,7 +122,7 @@
 
                 {{-- Topbar --}}
                 <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
-                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle me-3">
+                    <button id="mobileSidebarToggle" type="button" class="btn btn-link d-md-none rounded-circle me-3" aria-label="เปิดเมนู">
                         ☰
                     </button>
 
@@ -161,5 +162,6 @@
 
     <script src="{{ asset('vendor/sb-admin-2/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('vendor/sb-admin-2/js/sidebar.js') }}"></script>
+    <script src="{{ asset('js/mobile-sidebar.js') }}"></script>
 </body>
 </html>
