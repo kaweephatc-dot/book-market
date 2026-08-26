@@ -3,12 +3,6 @@
 @section('title', $shop->shop_name ?? $shop->name)
 
 @section('content')
-@if (session('success'))
-    <div class="alert alert-success d-none" data-flash="success">{{ session('success') }}</div>
-@endif
-@if (session('error'))
-    <div class="alert alert-danger d-none" data-flash="error">{{ session('error') }}</div>
-@endif
 
 {{-- แบนเนอร์ข้อมูลร้าน --}}
 <div class="shop-banner rounded-4 p-4 p-md-5 mb-4 text-white d-flex align-items-center gap-4 flex-wrap">
@@ -43,7 +37,7 @@
 
         @auth
             @if (!$isOwnShop && !$isAdminViewer)
-                <button class="btn btn-link btn-sm text-danger mt-2" data-bs-toggle="modal" data-bs-target="#reportShopModal">🚩 รายงานร้านนี้</button>
+                <button type="button" class="btn-report mt-2" data-bs-toggle="modal" data-bs-target="#reportShopModal">🚩 รายงานร้านนี้</button>
             @endif
         @endauth
 

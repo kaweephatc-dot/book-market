@@ -3,12 +3,6 @@
 @section('title', 'คำสั่งซื้อของฉัน')
 
 @section('content')
-@if (session('success'))
-    <div class="alert alert-success d-none" data-flash="success">{{ session('success') }}</div>
-@endif
-@if (session('error'))
-    <div class="alert alert-danger d-none" data-flash="error">{{ session('error') }}</div>
-@endif
 
 {{-- แท็บสลับ ซื้อ / ขาย --}}
 <ul class="nav nav-tabs mb-3" id="orderTab">

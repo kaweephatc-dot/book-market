@@ -188,6 +188,18 @@
                 {{-- End of Topbar --}}
 
                 <div class="container-fluid">
+                    {{-- flash message กลาง: ทุกหน้าที่ extends layout นี้ได้ toast อัตโนมัติ
+                       (sweetalert.js อ่านจาก [data-flash] แล้วลบ element ทิ้ง) --}}
+                    @if (session('success'))
+                        <div class="alert alert-success d-none" data-flash="success">{{ session('success') }}</div>
+                    @endif
+                    @if (session('error'))
+                        <div class="alert alert-danger d-none" data-flash="error">{{ session('error') }}</div>
+                    @endif
+                    @if (session('info'))
+                        <div class="alert alert-info d-none" data-flash="info">{{ session('info') }}</div>
+                    @endif
+
                     @yield('content')
                 </div>
 

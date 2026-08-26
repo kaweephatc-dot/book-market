@@ -152,7 +152,7 @@
 
         @auth
             @if (!$isOwner && !$isAdminViewer)
-                <button class="btn btn-link btn-sm text-danger w-100 mt-2" data-bs-toggle="modal" data-bs-target="#reportBookModal">🚩 รายงานหนังสือนี้</button>
+                <button type="button" class="btn-report w-100 mt-2" data-bs-toggle="modal" data-bs-target="#reportBookModal">🚩 รายงานหนังสือนี้</button>
             @endif
         @endauth
 

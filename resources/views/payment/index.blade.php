@@ -7,9 +7,6 @@
     <div class="col-md-8">
         <h3 class="mb-4">💳 ช่องทางการชำระเงินของฉัน</h3>
 
-        @if (session('success'))
-            <div class="alert alert-success d-none" data-flash="success">{{ session('success') }}</div>
-        @endif
 
         {{-- รายการช่องทางที่มี --}}
         <div class="row g-3 mb-4">

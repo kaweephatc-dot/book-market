@@ -4,9 +4,6 @@
 
 @section('content')
 
-@if (session('success'))
-    <div class="alert alert-success d-none" data-flash="success">{{ session('success') }}</div>
-@endif
 
 @php
     // สรุปตัวกรองที่กำลังใช้อยู่ เพื่อแสดงเป็นชิป และนับจำนวนบนปุ่ม "ตัวกรอง" ของจอมือถือ

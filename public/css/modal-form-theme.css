@@ -147,3 +147,35 @@
 .badge-soft-info      { background-color: #cff2f8; color: #08616f; }
 .badge-soft-warning   { background-color: #fff0cd; color: #7a5600; }
 .badge-soft-danger    { background-color: #ffdcdc; color: #96232c; }
+
+/* ปุ่มรายงาน — เดิมใช้ .btn-link จึงดูเป็นลิงก์ข้อความ ไม่เหมือนปุ่มที่กดได้
+   ไม่ใช้ .btn ของ Bootstrap ด้วยเหตุผลเดียวกับ .btn-back */
+.btn-report {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .4rem;
+    padding: .45rem 1rem;
+    border: 1px solid #f3c9cd;
+    border-radius: 2rem;
+    background-color: #fff;
+    color: #b0323c;
+    font-size: .85rem;
+    font-weight: 500;
+    line-height: 1.4;
+    text-decoration: none;
+    transition: color .15s ease, border-color .15s ease, background-color .15s ease, box-shadow .15s ease;
+}
+
+.btn-report:hover,
+.btn-report:focus {
+    color: #fff;
+    border-color: #d64550;
+    background-color: #d64550;
+    box-shadow: 0 2px 8px rgba(214, 69, 80, .25);
+}
+
+.btn-report:focus-visible {
+    outline: 2px solid #d64550;
+    outline-offset: 2px;
+}

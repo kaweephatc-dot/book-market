@@ -8,9 +8,6 @@
     <a href="{{ route('books.create') }}" class="btn btn-primary">➕ ลงประกาศใหม่</a>
 </div>
 
-@if (session('success'))
-    <div class="alert alert-success d-none" data-flash="success">{{ session('success') }}</div>
-@endif
 
 @if ($books->count() > 0)
     <div class="table-responsive">

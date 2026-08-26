@@ -5,12 +5,6 @@
 @section('content')
 <div class="row justify-content-center">
     <div class="col-md-8">
-        @if (session('success'))
-            <div class="alert alert-success d-none" data-flash="success">{{ session('success') }}</div>
-        @endif
-        @if (session('info'))
-            <div class="alert alert-info d-none" data-flash="info">{{ session('info') }}</div>
-        @endif
 
         <div class="card shadow-sm">
             <div class="card-body p-4">
