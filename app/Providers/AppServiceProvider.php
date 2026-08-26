@@ -28,11 +28,25 @@ class AppServiceProvider extends ServiceProvider
                 $userId = \Illuminate\Support\Facades\Auth::id();
 
                 // นับข้อความที่ยังไม่อ่าน ในห้องแชทที่เราเกี่ยวข้อง และไม่ใช่ข้อความที่เราส่งเอง
+                // ห้องที่อยู่ในถังขยะ หรือข้อความเก่าที่ถูกลบถาวรไปแล้ว ต้องไม่นับเข้า badge
+                // (ห้องที่ "ซ่อน" ยังนับอยู่ เพราะซ่อนไว้แค่ไม่ให้รก ไม่ได้แปลว่าเลิกสนใจ)
                 $unreadCount = \App\Models\Message::whereHas('conversation', function ($q) use ($userId) {
-                        $q->where('buyer_id', $userId)->orWhere('seller_id', $userId);
+                        $q->where(function ($q) use ($userId) {
+                            $q->where('buyer_id', $userId)->orWhere('seller_id', $userId);
+                        });
                     })
                     ->where('user_id', '!=', $userId)
                     ->where('is_read', false)
+                    ->whereNotExists(function ($q) use ($userId) {
+                        $q->selectRaw('1')
+                            ->from('conversation_user_states as s')
+                            ->whereColumn('s.conversation_id', 'messages.conversation_id')
+                            ->where('s.user_id', $userId)
+                            ->where(function ($q) {
+                                $q->whereNotNull('s.trashed_at')
+                                    ->orWhereColumn('s.cleared_before_message_id', '>=', 'messages.id');
+                            });
+                    })
                     ->count();
 
                 // นับข้อความในแชทรายงานของเรา ที่ไม่ใช่ข้อความที่เราส่งเอง (คือมาจากแอดมิน) และยังไม่อ่าน

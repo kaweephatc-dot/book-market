@@ -56,6 +56,8 @@ Route::get('/', [BookController::class, 'index'])->name('home');
         Route::post('/report-chat/{chat}/close', [AdminController::class, 'closeReportChat'])->name('admin.report.chat.close');
         Route::post('/report-chat/{chat}/reopen', [AdminController::class, 'reopenReportChat'])->name('admin.report.chat.reopen');
         Route::delete('/report-chat/{chat}', [AdminController::class, 'deleteReportChat'])->name('admin.report.chat.delete');
+        // ซ่อนแชทที่จัดการเสร็จแล้ว เฉพาะมุมมองของแอดมินคนที่กด
+        Route::post('/report-chat/{chat}/hide', [AdminController::class, 'toggleReportChatHidden'])->name('admin.report.chat.hide');
         Route::post('/users/{user}/ban-advanced', [AdminController::class, 'banUser'])->name('admin.users.banAdvanced');
         Route::post('/users/{user}/unban', [AdminController::class, 'unbanUser'])->name('admin.users.unban');
     });
@@ -104,6 +106,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/chat/{conversation}', [ChatController::class, 'show'])->name('chat.show');
         Route::post('/chat/{conversation}/send', [ChatController::class, 'sendMessage'])->name('chat.send');
         Route::post('/chat/{conversation}/read', [ChatController::class, 'markRead'])->name('chat.read');
+
+        // จัดการห้องแชท: ปักหมุด / ซ่อน / ถังขยะ (เป็นสถานะรายคน ไม่กระทบคู่สนทนา)
+        Route::post('/chat/{conversation}/pin', [ChatController::class, 'togglePin'])->name('chat.pin');
+        Route::post('/chat/{conversation}/pin/move', [ChatController::class, 'movePin'])->name('chat.pin.move');
+        Route::post('/chat/{conversation}/hide', [ChatController::class, 'toggleHide'])->name('chat.hide');
+        Route::post('/chat/{conversation}/trash', [ChatController::class, 'trash'])->name('chat.trash');
+        Route::post('/chat/{conversation}/restore', [ChatController::class, 'restore'])->name('chat.restore');
+        Route::post('/chat/{conversation}/purge', [ChatController::class, 'purge'])->name('chat.purge');
     });
 
     // ช่องทางการชำระเงิน (ห้ามแอดมิน)

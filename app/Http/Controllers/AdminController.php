@@ -161,26 +161,57 @@ class AdminController extends Controller
     }
 
     // รายการแชทกับผู้รายงาน แยกเป็นกำลังคุยอยู่ / ปิดไปแล้ว
-    public function reportChats()
+    public function reportChats(Request $request)
     {
+        $adminId = Auth::id();
+
         $unreadQuery = function ($q) {
             $q->where('is_read', false)
                 ->whereColumn('report_messages.user_id', 'report_chats.user_id');
         };
 
-        $openChats = ReportChat::with(['report', 'user'])
-            ->withCount(['messages as unread_count' => $unreadQuery])
-            ->where('is_closed', false)
-            ->latest('updated_at')
-            ->get();
+        // แชทที่แอดมินคนนี้ซ่อนไว้ (ซ่อนของใครของมัน ระบบมีแอดมินได้หลายคน)
+        $hiddenIds = \App\Models\ReportChatUserState::where('user_id', $adminId)
+            ->whereNotNull('hidden_at')
+            ->pluck('report_chat_id')
+            ->all();
 
-        $closedChats = ReportChat::with(['report', 'user'])
-            ->withCount(['messages as unread_count' => $unreadQuery])
-            ->where('is_closed', true)
-            ->latest('updated_at')
-            ->get();
+        $showHidden = $request->query('view') === 'hidden';
 
-        return view('admin.report-chats', compact('openChats', 'closedChats'));
+        $base = fn () => ReportChat::with(['report', 'user'])
+            ->withCount(['messages as unread_count' => $unreadQuery])
+            ->latest('updated_at');
+
+        if ($showHidden) {
+            $openChats = $base()->whereIn('id', $hiddenIds)->where('is_closed', false)->get();
+            $closedChats = $base()->whereIn('id', $hiddenIds)->where('is_closed', true)->get();
+        } else {
+            $openChats = $base()->whereNotIn('id', $hiddenIds)->where('is_closed', false)->get();
+            $closedChats = $base()->whereNotIn('id', $hiddenIds)->where('is_closed', true)->get();
+        }
+
+        $hiddenCount = count($hiddenIds);
+
+        return view('admin.report-chats', compact('openChats', 'closedChats', 'showHidden', 'hiddenCount'));
+    }
+
+    // ซ่อน/เลิกซ่อนแชทรายงาน เฉพาะมุมมองของแอดมินคนที่กด
+    public function toggleReportChatHidden(ReportChat $chat)
+    {
+        $state = \App\Models\ReportChatUserState::firstOrCreate([
+            'report_chat_id' => $chat->id,
+            'user_id' => Auth::id(),
+        ]);
+
+        if ($state->hidden_at) {
+            $state->update(['hidden_at' => null]);
+
+            return back()->with('success', 'เอาแชทกลับเข้ารายการหลักแล้ว');
+        }
+
+        $state->update(['hidden_at' => now()]);
+
+        return back()->with('success', 'ซ่อนแชทแล้ว ดูได้ที่ "ที่ซ่อนไว้"');
     }
 
     // ปิดเรื่อง (ไม่ทำอะไร - รายงานไม่มีมูล)

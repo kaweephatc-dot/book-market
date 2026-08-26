@@ -44,4 +44,25 @@ class Conversation extends Model
     {
         return $this->hasOne(Message::class)->latestOfMany();
     }
+
+    // สถานะรายคน: ปักหมุด / ซ่อน / ถังขยะ
+    public function userStates()
+    {
+        return $this->hasMany(ConversationUserState::class);
+    }
+
+    // สถานะของผู้ใช้คนหนึ่ง สร้างแถวให้ถ้ายังไม่มี
+    public function stateFor(int $userId): ConversationUserState
+    {
+        return ConversationUserState::firstOrCreate([
+            'conversation_id' => $this->id,
+            'user_id' => $userId,
+        ]);
+    }
+
+    // ผู้ใช้คนนี้อยู่ในห้องนี้ไหม
+    public function hasParticipant(int $userId): bool
+    {
+        return $this->buyer_id === $userId || $this->seller_id === $userId;
+    }
 }

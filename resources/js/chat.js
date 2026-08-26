@@ -143,8 +143,21 @@ function initChatRoom(root) {
     });
 }
 
+// ข้อความใหม่ดันแถวขึ้นบน แต่ต้องไม่แซงกลุ่มที่ปักหมุดไว้
 function moveItemToTop(list, item) {
-    list.prepend(item);
+    // ห้องที่ปักหมุดอยู่แล้ว ลำดับเป็นสิ่งที่ผู้ใช้จัดเอง อย่าไปสลับให้
+    if (item.dataset.pinned === '1') {
+        return;
+    }
+
+    const firstUnpinned = Array.from(list.children)
+        .find((el) => el !== item && el.dataset.pinned !== '1');
+
+    if (firstUnpinned) {
+        list.insertBefore(item, firstUnpinned);
+    } else {
+        list.appendChild(item);
+    }
 }
 
 function bumpItemBadge(item) {
@@ -172,75 +185,91 @@ function revealList(list) {
 // (ห้องนี้ยังไม่เคยถูก render จากฝั่งเซิร์ฟเวอร์ เลยต้องสร้าง element เองล้วนๆ ด้วย textContent
 // ป้องกัน XSS จากชื่อหนังสือ/ชื่อร้าน/ข้อความที่มาจาก broadcast payload)
 function buildConversationItem(list, payload) {
+    const item = document.createElement('div');
+    item.className = 'chat-item';
+    item.dataset.conversationId = payload.conversation_id;
+
     const a = document.createElement('a');
     a.href = list.dataset.chatShowUrlTemplate.replace('__ID__', payload.conversation_id);
-    a.className = 'list-group-item list-group-item-action';
-    a.dataset.conversationId = payload.conversation_id;
-
-    const row = document.createElement('div');
-    row.className = 'd-flex align-items-center gap-3';
+    a.className = 'chat-item-link';
 
     let thumb;
     if (payload.book_cover_url) {
         thumb = document.createElement('img');
         thumb.src = payload.book_cover_url;
-        thumb.style.width = '50px';
-        thumb.style.height = '50px';
-        thumb.style.objectFit = 'cover';
-        thumb.className = 'rounded';
+        thumb.className = 'chat-thumb';
         thumb.alt = '';
     } else {
         thumb = document.createElement('div');
-        thumb.className = 'bg-light rounded d-flex align-items-center justify-content-center';
-        thumb.style.width = '50px';
-        thumb.style.height = '50px';
+        thumb.className = 'chat-thumb chat-thumb-empty';
         thumb.textContent = '📚';
     }
-    row.appendChild(thumb);
+    a.appendChild(thumb);
 
     const body = document.createElement('div');
-    body.className = 'flex-grow-1';
+    body.className = 'chat-item-body';
 
     const topLine = document.createElement('div');
-    topLine.className = 'd-flex justify-content-between align-items-center';
+    topLine.className = 'chat-item-head';
 
     const title = document.createElement('strong');
+    title.className = 'chat-item-title';
     title.textContent = payload.book_title;
     topLine.appendChild(title);
-
-    const metaWrap = document.createElement('div');
-    metaWrap.className = 'd-flex align-items-center gap-2';
 
     const badge = document.createElement('span');
     badge.className = 'badge rounded-pill bg-danger';
     badge.setAttribute('data-unread-badge', '');
     badge.textContent = '1';
-    metaWrap.appendChild(badge);
+    topLine.appendChild(badge);
 
-    const time = document.createElement('small');
-    time.className = 'text-muted';
-    time.setAttribute('data-updated-at', '');
-    time.textContent = 'เมื่อสักครู่';
-    metaWrap.appendChild(time);
-
-    topLine.appendChild(metaWrap);
     body.appendChild(topLine);
 
     const otherLine = document.createElement('div');
-    otherLine.className = 'small text-muted';
+    otherLine.className = 'chat-item-sub';
     otherLine.textContent = 'กับ ' + payload.sender_display_name;
     body.appendChild(otherLine);
 
     const preview = document.createElement('div');
-    preview.className = 'small text-truncate fw-bold';
+    preview.className = 'chat-item-preview is-unread';
     preview.setAttribute('data-latest-message', '');
     preview.textContent = payload.message;
     body.appendChild(preview);
 
-    row.appendChild(body);
-    a.appendChild(row);
+    const foot = document.createElement('div');
+    foot.className = 'chat-item-foot';
+    const time = document.createElement('span');
+    time.setAttribute('data-updated-at', '');
+    time.textContent = 'เมื่อสักครู่';
+    foot.appendChild(time);
+    body.appendChild(foot);
 
-    return a;
+    a.appendChild(body);
+    item.appendChild(a);
+
+    // เมนูจัดการ: โคลนจาก <template> ที่ Blade เตรียม URL + CSRF ไว้ให้
+    const menu = buildRowMenu(payload.conversation_id);
+    if (menu) {
+        item.appendChild(menu);
+    }
+
+    return item;
+}
+
+// โคลนเมนู ⋯ จากแม่แบบแล้วเติม action ของห้องนี้เข้าไป
+function buildRowMenu(conversationId) {
+    const template = document.getElementById('chatMenuTemplate');
+    if (!template) {
+        return null;
+    }
+
+    const fragment = template.content.cloneNode(true);
+
+    fragment.querySelectorAll('form[data-action-template]').forEach((form) => {
+        form.action = form.dataset.actionTemplate.replace('__ID__', conversationId);
+    });
+
+    return fragment.firstElementChild;
 }
 
 // สร้างแถวใหม่ในหน้ารายการแชทรายงาน ตอนแอดมินเปิดแชทกับเราและตอบเป็นครั้งแรกขณะเปิดหน้าค้างไว้
@@ -308,6 +337,12 @@ function initChatList() {
 
     const channel = window.Echo.private('chat-user.' + userId);
 
+    // ห้องที่ถูกซ่อน/อยู่ถังขยะ ต้องไม่โผล่กลับเข้ากล่องหลักเองตอนมีข้อความใหม่
+    const excludedIds = (list.dataset.excludedIds || '')
+        .split(',')
+        .filter(Boolean);
+    const isInbox = (list.dataset.chatView || 'inbox') === 'inbox';
+
     channel.listen('.message.sent', (payload) => {
         let item = list.querySelector(`[data-conversation-id="${payload.conversation_id}"]`);
 
@@ -315,8 +350,8 @@ function initChatList() {
             const preview = item.querySelector('[data-latest-message]');
             if (preview) {
                 preview.textContent = payload.message;
-                preview.classList.remove('d-none', 'text-muted');
-                preview.classList.add('fw-bold');
+                preview.classList.remove('d-none');
+                preview.classList.add('is-unread');
             }
 
             const timeEl = item.querySelector('[data-updated-at]');
@@ -326,6 +361,11 @@ function initChatList() {
 
             bumpItemBadge(item);
         } else {
+            // ไม่สร้างแถวใหม่ ถ้ากำลังดูแท็บซ่อน/ถังขยะ หรือห้องนี้ผู้ใช้ซ่อน/ทิ้งไว้แล้ว
+            if (!isInbox || excludedIds.includes(String(payload.conversation_id))) {
+                return;
+            }
+
             item = buildConversationItem(list, payload);
             revealList(list);
         }
