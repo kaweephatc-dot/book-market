@@ -25,6 +25,53 @@
         .sidebar.toggled .nav-item .nav-link span { display: none; }
         .sidebar.toggled .sidebar-heading { display: none; }
         .sidebar.toggled .nav-item .nav-link i { margin-right: 0; font-size: 1.3rem; }
+
+        /* ผู้ใช้บน topbar: รูปโปรไฟล์จริง + ชื่อ กดไปหน้าโปรไฟล์ได้ */
+        .topbar-user {
+            display: inline-flex;
+            align-items: center;
+            gap: .55rem;
+            padding: .3rem .75rem .3rem .3rem;
+            border-radius: 2rem;
+            color: #5a5c69;
+            text-decoration: none;
+            transition: background-color .15s ease, color .15s ease;
+        }
+        .topbar-user:hover {
+            background-color: #eef1f7;
+            color: #3248f2;
+        }
+        .topbar-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex: 0 0 34px;
+            background: #eef1f7;
+        }
+        .topbar-avatar-empty {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #3248f2;
+            color: #fff;
+            font-weight: 700;
+            font-size: .95rem;
+            line-height: 1;
+        }
+        .topbar-username {
+            font-weight: 500;
+            max-width: 12rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* จอแคบเหลือแค่รูป ไม่ให้ชื่อยาวดันแถบ topbar */
+        @media (max-width: 575.98px) {
+            .topbar-username { display: none; }
+            .topbar-user { padding: .3rem; }
+        }
     </style>
     <link href="{{ asset('css/modal-form-theme.css') }}" rel="stylesheet">
     <link href="{{ asset('css/mobile-sidebar.css') }}" rel="stylesheet">
@@ -176,7 +223,15 @@
                     <ul class="navbar-nav ms-auto">
                         @auth
                             <li class="nav-item">
-                                <span class="nav-link">👤 {{ Auth::user()->name }}</span>
+                                <a class="topbar-user" href="{{ route('profile.index') }}" title="ไปที่โปรไฟล์">
+                                    @if (Auth::user()->avatar)
+                                        <img src="{{ asset('storage/' . Auth::user()->avatar) }}" class="topbar-avatar" alt="">
+                                    @else
+                                        {{-- ยังไม่ได้อัปโหลดรูป ใช้อักษรตัวแรกของชื่อแทน --}}
+                                        <span class="topbar-avatar topbar-avatar-empty">{{ mb_substr(Auth::user()->name, 0, 1) }}</span>
+                                    @endif
+                                    <span class="topbar-username">{{ Auth::user()->name }}</span>
+                                </a>
                             </li>
                         @else
                             <li class="nav-item">
@@ -224,8 +279,10 @@
 
     <script>
         // ทำให้ข้อความแจ้งเตือนหายไปเองหลังผ่านไป 4 วินาที (พฤติกรรมเดิมจาก layouts.app)
+        // จำกัดเฉพาะ flash message เท่านั้น: เดิมจับ .alert-* ทั้งหมด เลยลบกล่อง error
+        // ของ validation และกล่องคำอธิบายในหน้าต่างๆ ทิ้งไปด้วยหลังผ่านไป 2 วินาที
         setTimeout(function () {
-            document.querySelectorAll('.alert-success, .alert-info, .alert-danger').forEach(function (alert) {
+            document.querySelectorAll('[data-flash]').forEach(function (alert) {
                 alert.style.transition = 'opacity 0.5s';
                 alert.style.opacity = '0';
                 setTimeout(() => alert.remove(), 500);

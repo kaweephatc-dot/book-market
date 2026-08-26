@@ -39,9 +39,10 @@
                     </div>
 
                     @if ($user->is_shop)
-                        <div class="mb-3">
-                            <label class="form-label">ชื่อร้าน</label>
-                            <input type="text" name="shop_name" class="form-control" value="{{ old('shop_name', $user->shop_name) }}">
+                        {{-- ชื่อร้านย้ายไปแก้ที่แท็บ "ข้อมูลร้านค้า" เพื่อไม่ให้มี 2 ที่แก้คอลัมน์เดียวกัน --}}
+                        <div class="alert alert-info small">
+                            🏪 ข้อมูลร้านค้า (ชื่อร้าน โลโก้ เบอร์ติดต่อ ที่อยู่ร้าน)
+                            แก้ได้ที่ <a href="{{ route('profile.index', ['tab' => 'shop']) }}">แท็บข้อมูลร้านค้า</a>
                         </div>
                     @endif
 

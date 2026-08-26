@@ -25,6 +25,10 @@ class User extends Authenticatable
         'phone',
         'address',
         'shop_name',
+        'shop_description',
+        'shop_phone',
+        'shop_address',
+        'shop_logo',
         'avatar',
         'is_shop',
         'is_admin',
@@ -73,10 +77,28 @@ class User extends Authenticatable
         return $this->hasMany(Review::class, 'reviewer_id');
     }
 
+    // โลโก้ร้าน ถ้ายังไม่ได้ตั้งแยก ใช้รูปโปรไฟล์แทน (ร้านเดิมทั้งหมดจึงไม่มีรูปหาย)
+    public function shopLogoPath()
+    {
+        return $this->shop_logo ?: $this->avatar;
+    }
+
+    // เบอร์/ที่อยู่ร้าน ยังไม่ตั้งแยกก็ใช้ของโปรไฟล์ไปก่อน
+    public function shopPhone()
+    {
+        return $this->shop_phone ?: $this->phone;
+    }
+
+    public function shopAddress()
+    {
+        return $this->shop_address ?: $this->address;
+    }
+
     // คะแนนดาวเฉลี่ยของร้าน
     public function averageRating()
     {
-        return round($this->reviews()->avg('rating'), 1);
+        // avg() คืน null เมื่อยังไม่มีรีวิว ซึ่ง round() รับ null ไม่ได้ตั้งแต่ PHP 8.1
+        return round($this->reviews()->avg('rating') ?? 0, 1);
     }
 
     // จำนวนรีวิวทั้งหมด

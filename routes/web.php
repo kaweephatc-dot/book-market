@@ -79,6 +79,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
+    // แก้ไขข้อมูลร้านค้าของตัวเอง (ต้องเป็นร้านก่อน และห้ามแอดมิน)
+    Route::put('/profile/shop', [ProfileController::class, 'updateShop'])
+        ->middleware(['shop', 'not.admin'])
+        ->name('profile.shop.update');
+
     // สมัครร้านค้า (ห้ามแอดมิน)
     Route::middleware('not.admin')->group(function () {
         Route::get('/shop/register', [ProfileController::class, 'showRegisterShop'])->name('shop.register');

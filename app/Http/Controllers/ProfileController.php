@@ -8,12 +8,24 @@ use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
-    // แสดงหน้าโปรไฟล์
+    // แสดงหน้าโปรไฟล์ (แท็บข้อมูลส่วนตัว + ข้อมูลร้านค้า)
     public function index()
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        return view('profile.index', compact('user'));
+
+        // สรุปสถิติร้านไว้โชว์บนแท็บร้านค้า
+        $shopStats = null;
+        if ($user->is_shop) {
+            $shopStats = [
+                'available' => $user->books()->where('status', 'available')->count(),
+                'sold' => $user->books()->whereIn('status', ['sold', 'exchanged'])->count(),
+                'rating' => $user->averageRating(),
+                'reviews' => $user->reviewCount(),
+            ];
+        }
+
+        return view('profile.index', compact('user', 'shopStats'));
     }
 
     // แสดงฟอร์มสมัครเป็นร้าน
@@ -38,8 +50,13 @@ class ProfileController extends Controller
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
+        // เขียนลงทั้งช่องร้านและช่องส่วนตัว: ฟอร์มสมัครถามข้อมูลติดต่อของร้าน
+        // แต่ผู้ใช้เดิมอาจยังไม่เคยกรอกโปรไฟล์ เลยเติมให้ครบทีเดียว
+        // หลังจากนี้แก้ข้อมูลร้านที่แท็บร้านค้าจะไม่กระทบข้อมูลส่วนตัวอีก
         $user->update([
             'shop_name' => $request->shop_name,
+            'shop_phone' => $request->phone,
+            'shop_address' => $request->address,
             'phone' => $request->phone,
             'address' => $request->address,
             'is_shop' => true,
@@ -62,11 +79,12 @@ class ProfileController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
+        // shop_name ย้ายไปแก้ที่แท็บ "ข้อมูลร้านค้า" แล้ว ไม่รับจากฟอร์มนี้อีก
+        // (ถ้ายังรับอยู่ ฟอร์มที่ไม่มีช่องนี้จะส่งค่าว่างมาล้างชื่อร้านทิ้ง)
         $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
-            'shop_name' => 'nullable|string|max:255',
             'avatar' => 'nullable|image|max:2048',
         ]);
 
@@ -74,7 +92,6 @@ class ProfileController extends Controller
             'name' => $request->name,
             'phone' => $request->phone,
             'address' => $request->address,
-            'shop_name' => $request->shop_name,
         ];
 
         // อัปโหลดรูปโปรไฟล์ใหม่ (ถ้ามี)
@@ -89,6 +106,41 @@ class ProfileController extends Controller
         $user->update($data);
 
         return redirect()->route('profile.index')->with('success', 'แก้ไขโปรไฟล์สำเร็จ!');
+    }
+
+    // บันทึกการแก้ไขข้อมูลร้านค้าของตัวเอง
+    public function updateShop(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        $request->validate([
+            'shop_name' => 'required|string|max:255',
+            'shop_description' => 'nullable|string|max:1000',
+            'shop_phone' => 'nullable|string|max:20',
+            'shop_address' => 'nullable|string|max:500',
+            'shop_logo' => 'nullable|image|max:2048',
+        ]);
+
+        $data = [
+            'shop_name' => $request->shop_name,
+            'shop_description' => $request->shop_description,
+            'shop_phone' => $request->shop_phone,
+            'shop_address' => $request->shop_address,
+        ];
+
+        // อัปโหลดโลโก้ร้านใหม่ (ถ้ามี)
+        if ($request->hasFile('shop_logo')) {
+            if ($user->shop_logo) {
+                Storage::disk('public')->delete($user->shop_logo);
+            }
+            $data['shop_logo'] = $request->file('shop_logo')->store('shops', 'public');
+        }
+
+        $user->update($data);
+
+        return redirect()->route('profile.index', ['tab' => 'shop'])
+            ->with('success', 'บันทึกข้อมูลร้านค้าแล้ว');
     }
 
     // แสดงหน้าโปรไฟล์ร้าน (สาธารณะ)

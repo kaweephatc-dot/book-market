@@ -6,8 +6,8 @@
 
 {{-- แบนเนอร์ข้อมูลร้าน --}}
 <div class="shop-banner rounded-4 p-4 p-md-5 mb-4 text-white d-flex align-items-center gap-4 flex-wrap">
-    @if ($shop->avatar)
-        <img src="{{ asset('storage/' . $shop->avatar) }}" class="rounded-circle border border-3 border-white" style="width: 100px; height: 100px; object-fit: cover;" alt="">
+    @if ($shop->shopLogoPath())
+        <img src="{{ asset('storage/' . $shop->shopLogoPath()) }}" class="rounded-circle border border-3 border-white" style="width: 100px; height: 100px; object-fit: cover;" alt="">
     @else
         <div class="rounded-circle bg-white bg-opacity-25 d-flex align-items-center justify-content-center" style="width: 100px; height: 100px; font-size: 40px;">🏪</div>
     @endif
@@ -34,6 +34,31 @@
             $isOwnShop = auth()->check() && auth()->id() === $shop->id;
             $isAdminViewer = auth()->check() && auth()->user()->isAdmin();
         @endphp
+
+        {{-- ข้อมูลติดต่อร้าน (เจ้าของแก้ได้ที่ โปรไฟล์ › แท็บข้อมูลร้านค้า) --}}
+        @if ($shop->shop_description || $shop->shopPhone() || $shop->shopAddress())
+            <div class="card shadow-sm border-0 mb-3">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">เกี่ยวกับร้าน</h6>
+
+                    @if ($shop->shop_description)
+                        <p class="small mb-3" style="white-space: pre-line;">{{ $shop->shop_description }}</p>
+                    @endif
+
+                    @if ($shop->shopPhone())
+                        <div class="small mb-2">📞 {{ $shop->shopPhone() }}</div>
+                    @endif
+
+                    @if ($shop->shopAddress())
+                        <div class="small text-muted">📍 {{ $shop->shopAddress() }}</div>
+                    @endif
+                </div>
+            </div>
+        @endif
+
+        @if ($isOwnShop)
+            <a href="{{ route('profile.index', ['tab' => 'shop']) }}" class="btn btn-outline-primary btn-sm mb-3">✏️ แก้ไขข้อมูลร้าน</a>
+        @endif
 
         @auth
             @if (!$isOwnShop && !$isAdminViewer)

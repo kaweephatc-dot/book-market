@@ -11,22 +11,20 @@
     {{-- รูปภาพ --}}
     <div class="col-md-6">
         @if ($book->images->count() > 0)
-            {{-- รูปหลัก (คลิกเพื่อขยาย) --}}
-            <img id="mainImage"
-                 src="{{ asset('storage/' . $book->coverImage()->image_path) }}"
-                 class="d-block w-100 rounded-3 shadow-sm mb-2"
-                 style="height: 400px; object-fit: cover; cursor: pointer;"
-                 alt="{{ $book->title }}"
-                 data-bs-toggle="modal"
-                 data-bs-target="#imageModal">
+            {{-- รูปหลัก: แสดงเต็มภาพไม่ครอป (คลิกเพื่อขยาย) --}}
+            <div class="book-stage mb-2" data-bs-toggle="modal" data-bs-target="#imageModal">
+                <img id="mainImage"
+                     src="{{ asset('storage/' . $book->coverImage()->image_path) }}"
+                     alt="{{ $book->title }}">
+                <span class="book-stage-zoom">🔍 คลิกเพื่อดูเต็มจอ</span>
+            </div>
 
             {{-- แถวรูปย่อทั้งหมด --}}
             <div class="d-flex gap-2 flex-wrap">
                 @foreach ($book->images as $index => $image)
                     <div class="position-relative">
                         <img src="{{ asset('storage/' . $image->image_path) }}"
-                             class="rounded-2 border thumbnail-img {{ $index === 0 ? 'border-primary border-3' : '' }}"
-                             style="width: 70px; height: 70px; object-fit: cover; cursor: pointer;"
+                             class="thumbnail-img {{ $index === 0 ? 'is-active' : '' }}"
                              onclick="changeMainImage(this, '{{ asset('storage/' . $image->image_path) }}')"
                              alt="รูปที่ {{ $index + 1 }}">
                         @if ($image->ai_score)
@@ -36,7 +34,7 @@
                 @endforeach
             </div>
         @else
-            <div class="bg-light d-flex align-items-center justify-content-center rounded-3" style="height: 400px;">
+            <div class="book-stage book-stage-empty">
                 <span class="text-muted">ไม่มีรูป</span>
             </div>
         @endif
@@ -100,26 +98,41 @@
 
         <hr>
 
-        <div class="mb-3">
-            <strong>ผู้ขาย:</strong>
-            <a href="{{ route('shop.show', $book->user) }}" class="text-decoration-none">
-                🏪 {{ $book->user->shop_name ?? $book->user->name }}
-            </a>
-            @php
-                $shopAvg = $book->user->averageRating();
-                $shopCount = $book->user->reviewCount();
-            @endphp
-            @if ($shopCount > 0)
-                <div class="mt-1">
-                    @for ($i = 1; $i <= 5; $i++)
-                        <span style="color: {{ $i <= round($shopAvg) ? '#ffc107' : '#ddd' }};">★</span>
-                    @endfor
-                    <span class="text-muted small">{{ $shopAvg }} ({{ $shopCount }} รีวิว)</span>
-                </div>
+        @php
+            $seller = $book->user;
+            $shopAvg = $seller->averageRating();
+            $shopCount = $seller->reviewCount();
+            $shopBooks = $seller->books()->where('status', 'available')->count();
+        @endphp
+
+        {{-- การ์ดร้านผู้ขาย: ทั้งใบเป็นลิงก์ไปหน้าร้าน --}}
+        <a href="{{ route('shop.show', $seller) }}" class="seller-card mb-3">
+            @if ($seller->shopLogoPath())
+                <img src="{{ asset('storage/' . $seller->shopLogoPath()) }}" class="seller-logo" alt="{{ $seller->shop_name ?? $seller->name }}">
             @else
-                <div class="text-muted small mt-1">ยังไม่มีรีวิว</div>
+                <div class="seller-logo seller-logo-empty">🏪</div>
             @endif
-        </div>
+
+            <div class="seller-info">
+                <span class="seller-label">ผู้ขาย</span>
+                <span class="seller-name">{{ $seller->shop_name ?? $seller->name }}</span>
+
+                @if ($shopCount > 0)
+                    <span class="seller-rating">
+                        @for ($i = 1; $i <= 5; $i++)
+                            <span class="{{ $i <= round($shopAvg) ? 'star-on' : 'star-off' }}">★</span>
+                        @endfor
+                        <span class="seller-meta">{{ $shopAvg }} ({{ $shopCount }} รีวิว)</span>
+                    </span>
+                @else
+                    <span class="seller-meta">ยังไม่มีรีวิว</span>
+                @endif
+
+                <span class="seller-meta">📚 มีหนังสือ {{ number_format($shopBooks) }} เล่มในร้าน</span>
+            </div>
+
+            <span class="seller-go" aria-hidden="true">›</span>
+        </a>
 
         @php
             $isOwner = auth()->check() && auth()->id() === $book->user_id;
@@ -165,13 +178,158 @@
 <div class="modal fade" id="imageModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-body p-0 position-relative">
+            <div class="modal-body p-0 position-relative d-flex justify-content-center">
                 <button type="button" class="btn-close position-absolute top-0 end-0 m-2 bg-white" data-bs-dismiss="modal" style="z-index: 10;"></button>
-                <img id="modalImage" src="" class="w-100 rounded" alt="ภาพเต็ม">
+                {{-- ไม่ใส่ .w-100: รูปแนวตั้งจะถูกยืดจนล้นความสูงจอ --}}
+                <img id="modalImage" src="" class="rounded" alt="ภาพเต็ม">
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    /* กรอบรูปหลัก: ความสูงคงที่เพื่อไม่ให้หน้ากระตุกตอนสลับรูป
+       แต่ตัวรูปใช้ contain จึงเห็นเต็มภาพ ไม่ถูกครอปเหมือน cover */
+    .book-stage {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        aspect-ratio: 4 / 3;
+        padding: .5rem;
+        border-radius: .75rem;
+        background: #f4f6fb;
+        overflow: hidden;
+        cursor: zoom-in;
+    }
+    .book-stage img {
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        border-radius: .4rem;
+    }
+    .book-stage-empty {
+        cursor: default;
+    }
+    .book-stage-zoom {
+        position: absolute;
+        right: .6rem;
+        bottom: .6rem;
+        padding: .2rem .6rem;
+        border-radius: 1rem;
+        background: rgba(20, 24, 45, .65);
+        color: #fff;
+        font-size: .72rem;
+        opacity: 0;
+        transition: opacity .15s ease;
+        pointer-events: none;
+    }
+    .book-stage:hover .book-stage-zoom { opacity: 1; }
+
+    .thumbnail-img {
+        width: 70px;
+        height: 70px;
+        padding: 2px;
+        object-fit: contain;
+        border-radius: .5rem;
+        background: #f4f6fb;
+        border: 2px solid transparent;
+        cursor: pointer;
+        transition: border-color .15s ease;
+    }
+    .thumbnail-img:hover { border-color: #c3cbe8; }
+    .thumbnail-img.is-active { border-color: var(--bs-primary); }
+
+    /* --- การ์ดร้านผู้ขาย --- */
+    .seller-card {
+        display: flex;
+        align-items: center;
+        gap: .85rem;
+        padding: .85rem 1rem;
+        border: 1px solid #e6eaf3;
+        border-radius: .9rem;
+        background: #fbfcfe;
+        color: inherit;
+        text-decoration: none;
+        transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease;
+    }
+    .seller-card:hover {
+        color: inherit;
+        border-color: var(--bs-primary);
+        background: #fff;
+        box-shadow: 0 .4rem 1rem rgba(31, 45, 110, .1);
+    }
+
+    .seller-logo {
+        flex: 0 0 54px;
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: #eef1f7;
+        border: 2px solid #fff;
+        box-shadow: 0 0 0 1px #e6eaf3;
+    }
+    .seller-logo-empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+
+    .seller-info {
+        display: flex;
+        flex-direction: column;
+        gap: .1rem;
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+    .seller-label {
+        font-size: .72rem;
+        color: #9aa2b1;
+        line-height: 1.2;
+    }
+    .seller-name {
+        font-weight: 600;
+        color: #2b2f45;
+        line-height: 1.3;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .seller-card:hover .seller-name { color: var(--bs-primary); }
+
+    .seller-rating { line-height: 1.3; }
+    .seller-rating .star-on { color: #ffc107; }
+    .seller-rating .star-off { color: #dfe3ec; }
+    .seller-meta {
+        font-size: .78rem;
+        color: #8a92a3;
+        line-height: 1.35;
+    }
+
+    .seller-go {
+        flex: 0 0 auto;
+        font-size: 1.5rem;
+        line-height: 1;
+        color: #c3cbe0;
+        transition: transform .15s ease, color .15s ease;
+    }
+    .seller-card:hover .seller-go {
+        color: var(--bs-primary);
+        transform: translateX(3px);
+    }
+
+    /* รูปในโมดัลต้องไม่สูงเกินจอ ไม่งั้นรูปแนวตั้งจะล้นออกนอกหน้าต่าง */
+    #modalImage {
+        max-height: 85vh;
+        width: auto;
+        max-width: 100%;
+        object-fit: contain;
+    }
+</style>
 
 <script>
     // เปลี่ยนรูปหลักเมื่อคลิกรูปย่อ
@@ -181,15 +339,18 @@
 
         // ไฮไลต์รูปที่เลือก
         document.querySelectorAll('.thumbnail-img').forEach(img => {
-            img.classList.remove('border-primary', 'border-3');
+            img.classList.remove('is-active');
         });
-        thumb.classList.add('border-primary', 'border-3');
+        thumb.classList.add('is-active');
     }
 
-    // ตั้งค่ารูปเริ่มต้นใน modal
-    document.getElementById('mainImage')?.addEventListener('click', function() {
-        document.getElementById('modalImage').src = this.src;
-    });
+    // ตั้งค่ารูปเริ่มต้นใน modal ตั้งแต่โหลดหน้า
+    // (เดิมผูกกับ click ของ #mainImage ซึ่งพลาดกรณีคลิกโดนขอบกรอบ)
+    (function () {
+        const main = document.getElementById('mainImage');
+        const modalImg = document.getElementById('modalImage');
+        if (main && modalImg) modalImg.src = main.src;
+    })();
 </script>
 
     {{-- Modal รายงานหนังสือ --}}
