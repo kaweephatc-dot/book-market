@@ -57,11 +57,12 @@
                     $stamp = $conv->latest_message_at ?? $conv->updated_at;
                     if ($isPinned) { $pinnedIndex++; }
 
-                    $daysLeft = null;
-                    if ($conv->trashed_at) {
-                        $deadline = \Carbon\Carbon::parse($conv->trashed_at)->addDays($trashDays);
-                        $daysLeft = max(1, (int) ceil(now()->diffInDays($deadline, false)));
-                    }
+                    // ใช้ตัวคำนวณตัวเดียวกับ ConversationUserState::daysLeftInTrash()
+                    // จะได้ไม่ต้องมี logic วันหมดอายุถังขยะซ้ำสองที่
+                    // ($conv มาจาก join จึงถือแค่คอลัมน์ดิบ ไม่ใช่ตัว state จริง เลยห่อเป็น instance ชั่วคราว)
+                    $daysLeft = $conv->trashed_at
+                        ? (new \App\Models\ConversationUserState(['trashed_at' => $conv->trashed_at]))->daysLeftInTrash()
+                        : null;
                 @endphp
 
                 <div class="chat-item {{ $isPinned ? 'is-pinned' : '' }}"
