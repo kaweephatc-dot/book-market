@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Book;
 use Illuminate\Support\Facades\Auth;
 use App\Services\BookConditionService;
+use App\Services\BookSearchAiService;
 use Illuminate\Support\Facades\Storage;
 
 class BookController extends Controller
@@ -50,6 +51,87 @@ class BookController extends Controller
         $books = $query->paginate(12)->withQueryString();
 
         return view('home', compact('books'));
+    }
+
+    /**
+     * ค้นหาด้วยประโยคภาษาธรรมชาติ (ช่อง "ค้นหาด้วย AI") — แยกจากช่องค้นหาปกติคนละ route
+     *
+     * ส่งประโยคให้ Gemini แปลงเป็น filter แล้วยิงเข้า query เดียวกับหน้าหลัก
+     * ถ้า AI ใช้ไม่ได้ด้วยเหตุผลใดก็ตาม จะถอยไปค้นแบบ keyword ธรรมดาเสมอ ไม่มีทางขึ้นหน้า error
+     */
+    public function aiSearch(Request $request, BookSearchAiService $ai)
+    {
+        $sentence = trim((string) $request->query('q', ''));
+
+        // ยังไม่ได้พิมพ์อะไรมา ก็ไม่ต้องรบกวน AI ให้เปลือง quota
+        if ($sentence === '') {
+            return redirect()->route('home');
+        }
+
+        $result = $ai->interpret($sentence);
+
+        if ($result['success']) {
+            $filters = $result['filters'];
+            $aiFallbackReason = null;
+        } else {
+            // ถอยไปค้นแบบปกติ: เอาทั้งประโยคไปค้นใน title/ชื่อร้าน เหมือนช่องค้นหาเดิมเป๊ะ
+            $filters = ['keyword' => $sentence, 'category' => null,
+                        'price_min' => null, 'price_max' => null, 'type' => null];
+            $aiFallbackReason = $result['error'] ?? 'ใช้ AI ไม่ได้ในขณะนี้';
+        }
+
+        $books = $this->applyAiFilters($filters)->paginate(12)->withQueryString();
+
+        return view('home', [
+            'books' => $books,
+            'aiQuery' => $sentence,
+            'aiFilters' => $filters,
+            'aiFallbackReason' => $aiFallbackReason,
+        ]);
+    }
+
+    /**
+     * ประกอบ query จาก filter ที่ AI ตีความมา
+     *
+     * เงื่อนไข keyword / category / type ตั้งใจเขียนซ้ำให้ตรงกับ index() ด้านบน (บรรทัด ~17-39)
+     * เพื่อไม่ต้องไปแก้ index() ที่ใช้งานอยู่จริง ถ้าวันหลังจะยุบรวมให้ย้ายทั้งสองที่มาใช้ตัวนี้
+     * ส่วน price_min/price_max เป็นของที่ index() ไม่มี (ช่องค้นหาปกติกรองราคาไม่ได้)
+     *
+     * @param array{keyword: ?string, category: ?string, price_min: ?float, price_max: ?float, type: ?string} $filters
+     */
+    private function applyAiFilters(array $filters)
+    {
+        $query = Book::with(['user', 'images'])->where('status', 'available');
+
+        if (! empty($filters['type'])) {
+            $query->where('type', $filters['type']);
+        }
+
+        if (! empty($filters['keyword'])) {
+            $keyword = $filters['keyword'];
+            $query->where(function ($q) use ($keyword) {
+                $q->where('title', 'like', "%{$keyword}%")
+                  ->orWhereHas('user', function ($u) use ($keyword) {
+                      $u->where('shop_name', 'like', "%{$keyword}%")
+                        ->orWhere('name', 'like', "%{$keyword}%");
+                  });
+            });
+        }
+
+        if (! empty($filters['category'])) {
+            $query->where('category', $filters['category']);
+        }
+
+        // หนังสือแลกเปลี่ยนมี price เป็น NULL จึงหลุดออกจากผลเมื่อผู้ใช้ระบุช่วงราคา ซึ่งตรงกับที่ควรเป็น
+        if ($filters['price_min'] !== null) {
+            $query->where('price', '>=', $filters['price_min']);
+        }
+
+        if ($filters['price_max'] !== null) {
+            $query->where('price', '<=', $filters['price_max']);
+        }
+
+        return $query->latest();
     }
 
     // แสดงฟอร์มเพิ่มหนังสือ

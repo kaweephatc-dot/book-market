@@ -26,6 +26,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // หน้าหลัก
 Route::get('/', [BookController::class, 'index'])->name('home');
 
+// ค้นหาด้วยประโยคภาษาธรรมชาติ (ช่อง AI แยกจากช่องค้นหาปกติ) แสดงผลด้วยหน้า home ตัวเดียวกัน
+Route::get('/ai-search', [BookController::class, 'aiSearch'])->name('books.aiSearch');
+
 // ==== Admin เท่านั้น ====
     Route::middleware('admin')->prefix('admin')->group(function () {
         Route::get('/', [AdminController::class, 'dashboard'])->name('admin.dashboard');

@@ -98,6 +98,64 @@
     @endif
 </form>
 
+{{-- ช่องค้นหาด้วย AI: ฟอร์มแยกคนละ route กับช่องค้นหาปกติด้านบน ไม่ใช้ id/ชื่อ field ร่วมกัน --}}
+<form method="GET" action="{{ route('books.aiSearch') }}" class="ai-search-panel">
+    <label class="ai-search-label" for="aiSearchInput">
+        <span class="ai-search-badge">ค้นหาด้วย AI ✨</span>
+        <span class="ai-search-hint d-none d-sm-inline">พิมพ์เป็นประโยคได้เลย เช่น “อยากได้นิยายสืบสวนราคาไม่เกิน 200”</span>
+    </label>
+
+    <div class="ai-search-bar">
+        <input type="text" id="aiSearchInput" name="q" class="form-control ai-search-input"
+               placeholder="อยากได้หนังสือแบบไหน พิมพ์บอกได้เลย"
+               value="{{ $aiQuery ?? '' }}" autocomplete="off" maxlength="200">
+        <button type="submit" class="btn btn-ai-search">ค้นหา</button>
+    </div>
+</form>
+
+@isset($aiQuery)
+    {{-- สรุปว่า AI ตีความประโยคออกมาเป็นตัวกรองอะไรบ้าง ให้ผู้ใช้ตรวจสอบได้ว่าเข้าใจตรงกันไหม --}}
+    <div class="ai-result-box">
+        @if ($aiFallbackReason ?? null)
+            <div class="ai-fallback-note">
+                ℹ️ ตอนนี้ใช้การค้นหาแบบปกติแทน AI ชั่วคราว — ค้นจากทั้งประโยคในชื่อหนังสือและชื่อร้าน
+            </div>
+        @else
+            @php
+                // แปลง filter ที่ AI ตีความได้ ให้เป็นป้ายอ่านง่าย (ข้ามช่องที่เป็น null)
+                $aiChips = [];
+                if ($aiFilters['keyword'] ?? null) {
+                    $aiChips[] = '🔎 ' . $aiFilters['keyword'];
+                }
+                if ($aiFilters['category'] ?? null) {
+                    $aiChips[] = '📚 ' . $aiFilters['category'];
+                }
+                if (($aiFilters['type'] ?? null) === 'sale') {
+                    $aiChips[] = '📗 สำหรับซื้อ';
+                } elseif (($aiFilters['type'] ?? null) === 'exchange') {
+                    $aiChips[] = '🔄 แลกเปลี่ยน';
+                }
+                $min = $aiFilters['price_min'] ?? null;
+                $max = $aiFilters['price_max'] ?? null;
+                if ($min !== null && $max !== null) {
+                    $aiChips[] = '฿' . number_format($min) . ' – ฿' . number_format($max);
+                } elseif ($max !== null) {
+                    $aiChips[] = 'ไม่เกิน ฿' . number_format($max);
+                } elseif ($min !== null) {
+                    $aiChips[] = 'ตั้งแต่ ฿' . number_format($min);
+                }
+            @endphp
+
+            <span class="ai-result-title">✨ AI เข้าใจว่า</span>
+            @foreach ($aiChips as $chip)
+                <span class="ai-chip">{{ $chip }}</span>
+            @endforeach
+        @endif
+
+        <a class="ai-result-reset" href="{{ route('home') }}">ล้าง</a>
+    </div>
+@endisset
+
 {{-- แถบเครื่องมือ: แท็บประเภท + จำนวนผลลัพธ์ + สลับมุมมอง --}}
 <div class="results-toolbar mb-3">
     <div class="type-tabs">
@@ -625,6 +683,80 @@
             justify-content: space-between;
         }
     }
+    /* --- ช่องค้นหาด้วย AI (แยกจากช่องค้นหาปกติ) --- */
+    .ai-search-panel {
+        margin: 1rem 0 1.25rem;
+        padding: 1rem 1.15rem 1.15rem;
+        border-radius: 1rem;
+        background: linear-gradient(135deg, color-mix(in srgb, var(--bs-primary) 7%, #fff), #fff);
+        border: 1px solid color-mix(in srgb, var(--bs-primary) 18%, #fff);
+    }
+    .ai-search-label {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: .5rem;
+        margin-bottom: .6rem;
+    }
+    .ai-search-badge {
+        padding: .25rem .7rem;
+        border-radius: 2rem;
+        background: var(--bs-primary);
+        color: #fff;
+        font-size: .82rem;
+        font-weight: 600;
+    }
+    .ai-search-hint { font-size: .82rem; color: #7a8394; }
+    .ai-search-bar { display: flex; gap: .5rem; }
+    .ai-search-input {
+        border-radius: .7rem;
+        border-color: color-mix(in srgb, var(--bs-primary) 25%, #fff);
+    }
+    .ai-search-input:focus {
+        border-color: var(--bs-primary);
+        box-shadow: 0 0 0 .2rem color-mix(in srgb, var(--bs-primary) 15%, transparent);
+    }
+    .btn-ai-search {
+        flex-shrink: 0;
+        padding-inline: 1.4rem;
+        border-radius: .7rem;
+        background: var(--bs-primary);
+        color: #fff;
+        font-weight: 600;
+        border: none;
+    }
+    .btn-ai-search:hover { background: color-mix(in srgb, var(--bs-primary) 85%, #000); color: #fff; }
+
+    /* --- แถบสรุปผลการตีความของ AI --- */
+    .ai-result-box {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: .5rem;
+        margin-bottom: 1rem;
+        padding: .7rem .9rem;
+        border-radius: .75rem;
+        background: #f6f7fb;
+        border: 1px solid #e7eaf3;
+    }
+    .ai-result-title { font-size: .85rem; color: #5a6478; font-weight: 600; }
+    .ai-chip {
+        padding: .25rem .7rem;
+        border-radius: 2rem;
+        background: #fff;
+        border: 1px solid #dfe4f0;
+        font-size: .85rem;
+        color: #3d4761;
+    }
+    /* แจ้งแบบเบาๆ ว่าถอยไปค้นปกติ ไม่ใช้สีแดงเพราะผลลัพธ์ยังใช้งานได้ตามปกติ */
+    .ai-fallback-note { font-size: .85rem; color: #6b7385; }
+    .ai-result-reset {
+        margin-left: auto;
+        font-size: .82rem;
+        color: #8a92a3;
+        text-decoration: none;
+    }
+    .ai-result-reset:hover { color: var(--bs-danger); text-decoration: underline; }
 </style>
 
 <script>
