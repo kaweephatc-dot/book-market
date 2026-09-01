@@ -74,7 +74,8 @@ class BookController extends Controller
             $filters = $result['filters'];
             $aiFallbackReason = null;
         } else {
-            // ถอยไปค้นแบบปกติ: เอาทั้งประโยคไปค้นใน title/ชื่อร้าน เหมือนช่องค้นหาเดิมเป๊ะ
+            // ถอยไปค้นแบบปกติ: เอาทั้งประโยคไปค้นเป็น keyword ผ่าน applyAiFilters()
+            // จึงกว้างกว่าช่องค้นหาปกติอยู่บ้าง (ครอบ author/description ด้วย) ซึ่งตั้งใจให้เป็นแบบนั้น
             $filters = ['keyword' => $sentence, 'category' => null,
                         'price_min' => null, 'price_max' => null, 'type' => null];
             $aiFallbackReason = $result['error'] ?? 'ใช้ AI ไม่ได้ในขณะนี้';
@@ -93,9 +94,10 @@ class BookController extends Controller
     /**
      * ประกอบ query จาก filter ที่ AI ตีความมา
      *
-     * เงื่อนไข keyword / category / type ตั้งใจเขียนซ้ำให้ตรงกับ index() ด้านบน (บรรทัด ~17-39)
+     * เงื่อนไข category / type เขียนซ้ำให้ตรงกับ index() ด้านบน (บรรทัด ~17-39)
      * เพื่อไม่ต้องไปแก้ index() ที่ใช้งานอยู่จริง ถ้าวันหลังจะยุบรวมให้ย้ายทั้งสองที่มาใช้ตัวนี้
-     * ส่วน price_min/price_max เป็นของที่ index() ไม่มี (ช่องค้นหาปกติกรองราคาไม่ได้)
+     * ส่วน keyword ที่นี่ค้นกว้างกว่า index() — เพิ่ม author/description นอกเหนือจาก title/ชื่อร้าน
+     * และ price_min/price_max เป็นของที่ index() ไม่มี (ช่องค้นหาปกติกรองราคาไม่ได้)
      *
      * @param array{keyword: ?string, category: ?string, price_min: ?float, price_max: ?float, type: ?string} $filters
      */
@@ -107,10 +109,14 @@ class BookController extends Controller
             $query->where('type', $filters['type']);
         }
 
+        // ทุกเงื่อนไข keyword อยู่ในวงเล็บเดียวกัน ไม่ให้ OR หลุดไปกระทบ price/category/type ข้างล่าง
+        // author/description เป็น nullable ได้ แถวที่เป็น NULL แค่ไม่แมตช์เงื่อนไขนั้น ไม่ตกหล่นจากทางอื่น
         if (! empty($filters['keyword'])) {
             $keyword = $filters['keyword'];
             $query->where(function ($q) use ($keyword) {
                 $q->where('title', 'like', "%{$keyword}%")
+                  ->orWhere('author', 'like', "%{$keyword}%")
+                  ->orWhere('description', 'like', "%{$keyword}%")
                   ->orWhereHas('user', function ($u) use ($keyword) {
                       $u->where('shop_name', 'like', "%{$keyword}%")
                         ->orWhere('name', 'like', "%{$keyword}%");
