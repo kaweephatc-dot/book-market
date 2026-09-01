@@ -51,7 +51,7 @@ class BookConditionService
                 ];
             }
 
-            $model = config('services.gemini.model', 'gemini-2.5-flash');
+            $model = config('services.gemini.model', 'gemini-3.5-flash');
 
             $response = Http::timeout(30)->post(
                 "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}",

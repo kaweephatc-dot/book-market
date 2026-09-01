@@ -64,7 +64,7 @@ class BookSearchAiService
                 return ['success' => false, 'error' => 'ยังไม่ได้ตั้งค่า GEMINI_API_KEY'];
             }
 
-            $model = config('services.gemini.model', 'gemini-2.5-flash');
+            $model = config('services.gemini.model', 'gemini-3.5-flash');
 
             $response = Http::timeout(self::TIMEOUT)->post(
                 "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}",
