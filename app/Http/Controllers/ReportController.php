@@ -7,7 +7,9 @@ use App\Events\ReportCreated;
 use App\Models\Book;
 use App\Models\User;
 use App\Models\Report;
+use Illuminate\Broadcasting\BroadcastException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ReportController extends Controller
 {
@@ -62,7 +64,14 @@ class ReportController extends Controller
 
         $report->load('reporter');
 
-        broadcast(new ReportCreated($report));
+        try {
+            broadcast(new ReportCreated($report));
+        } catch (BroadcastException $exception) {
+            Log::warning('รายงานถูกบันทึกแล้ว แต่ส่งการแจ้งเตือนแอดมินแบบ realtime ไม่สำเร็จ', [
+                'report_id' => $report->id,
+                'exception' => $exception,
+            ]);
+        }
 
         return back()->with('success', 'ส่งรายงานแล้ว ขอบคุณที่ช่วยดูแลชุมชน');
     }

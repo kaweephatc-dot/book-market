@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OrderNotificationSent;
 use Illuminate\Http\Request;
 use App\Models\Book;
 use App\Models\Order;
+use App\Models\OrderNotification;
+use Illuminate\Broadcasting\BroadcastException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class OrderController extends Controller
@@ -35,20 +39,29 @@ class OrderController extends Controller
             return back()->with('error', 'คุณมีคำสั่งซื้อหนังสือเล่มนี้อยู่แล้ว');
         }
 
-        Order::create([
+        $order = Order::create([
             'book_id' => $book->id,
             'buyer_id' => $buyerId,
             'seller_id' => $book->user_id,
             'status' => 'pending',
         ]);
 
+        $this->createNotification($order, $order->seller_id, OrderNotification::ORDER_CREATED);
+
         return redirect()->route('orders.index')->with('success', 'ส่งคำสั่งซื้อแล้ว รอผู้ขายตอบรับ');
     }
 
     // หน้าประวัติคำสั่งซื้อ (ทั้งที่ซื้อและขาย)
-    public function index()
+    public function index(Request $request)
     {
         $userId = Auth::id();
+        $role = $request->query('tab', 'buyer');
+
+        if (!in_array($role, ['buyer', 'seller'], true)) {
+            $role = 'buyer';
+        }
+
+        $this->markNotificationsReadForRole($userId, $role);
 
         $buyingOrders = Order::with(['book.images', 'seller'])
             ->where('buyer_id', $userId)
@@ -60,7 +73,23 @@ class OrderController extends Controller
             ->latest()
             ->get();
 
-        return view('orders.index', compact('buyingOrders', 'sellingOrders'));
+        return view('orders.index', compact('buyingOrders', 'sellingOrders', 'role'));
+    }
+
+    public function markNotificationsRead(Request $request)
+    {
+        $validated = $request->validate([
+            'role' => 'required|in:buyer,seller',
+        ]);
+
+        $userId = Auth::id();
+        $this->markNotificationsReadForRole($userId, $validated['role']);
+
+        $unreadCount = OrderNotification::where('recipient_id', $userId)
+            ->where('is_read', false)
+            ->count();
+
+        return response()->json(['unread_count' => $unreadCount]);
     }
 
     // ผู้ขายกดรับออเดอร์
@@ -75,6 +104,7 @@ class OrderController extends Controller
         }
 
         $order->update(['status' => 'accepted']);
+        $this->createNotification($order, $order->buyer_id, OrderNotification::ORDER_ACCEPTED);
         return back()->with('success', 'รับออเดอร์แล้ว รอผู้ซื้อโอนเงิน');
     }
 
@@ -100,6 +130,8 @@ class OrderController extends Controller
             'status' => 'paid',
         ]);
 
+        $this->createNotification($order, $order->seller_id, OrderNotification::SLIP_UPLOADED);
+
         return back()->with('success', 'แนบสลิปแล้ว รอผู้ขายยืนยัน');
     }
 
@@ -116,6 +148,7 @@ class OrderController extends Controller
 
         // ยืนยันสลิปแล้ว แต่ยังไม่เปลี่ยนสถานะ (รอส่งของต่อ)
         $order->update(['seller_confirmed' => true]);
+        $this->createNotification($order, $order->buyer_id, OrderNotification::PAYMENT_CONFIRMED);
 
         return back()->with('success', 'ยืนยันสลิปแล้ว กรุณาส่งของและแนบหลักฐาน');
     }
@@ -146,6 +179,8 @@ class OrderController extends Controller
             'status' => 'shipping',
         ]);
 
+        $this->createNotification($order, $order->buyer_id, OrderNotification::SHIPPING_CONFIRMED);
+
         return back()->with('success', 'ยืนยันการส่งของแล้ว รอผู้ซื้อยืนยันรับของ');
     }
 
@@ -165,6 +200,8 @@ class OrderController extends Controller
             'buyer_confirmed' => true,
             'status' => 'completed',
         ]);
+
+        $this->createNotification($order, $order->seller_id, OrderNotification::RECEIVED_CONFIRMED);
 
         // มาร์คหนังสือเป็นขายแล้ว
         $order->book->update([
@@ -189,6 +226,8 @@ class OrderController extends Controller
         }
 
         $order->update(['status' => 'cancelled']);
+        $recipientId = $userId === $order->buyer_id ? $order->seller_id : $order->buyer_id;
+        $this->createNotification($order, $recipientId, OrderNotification::ORDER_CANCELLED);
         return back()->with('success', 'ยกเลิกออเดอร์แล้ว');
     }
 
@@ -210,6 +249,47 @@ class OrderController extends Controller
             'dispute_reason' => $request->reason,
         ]);
 
+        $recipientId = $userId === $order->buyer_id ? $order->seller_id : $order->buyer_id;
+        $this->createNotification($order, $recipientId, OrderNotification::ORDER_DISPUTED);
+
         return back()->with('success', 'แจ้งปัญหาแล้ว ผู้ดูแลระบบจะตรวจสอบ');
+    }
+
+    private function createNotification(Order $order, int $recipientId, string $type): void
+    {
+        if ($recipientId === Auth::id()) {
+            return;
+        }
+
+        // Keep only the latest unread event for this order and recipient.
+        $order->notifications()
+            ->where('recipient_id', $recipientId)
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
+
+        $notification = $order->notifications()->create([
+            'recipient_id' => $recipientId,
+            'type' => $type,
+        ]);
+
+        try {
+            broadcast(new OrderNotificationSent($notification));
+        } catch (BroadcastException $exception) {
+            Log::warning('สร้าง order notification แล้ว แต่ส่ง realtime ไม่สำเร็จ', [
+                'notification_id' => $notification->id,
+                'order_id' => $order->id,
+                'exception' => $exception,
+            ]);
+        }
+    }
+
+    private function markNotificationsReadForRole(int $userId, string $role): void
+    {
+        OrderNotification::where('recipient_id', $userId)
+            ->where('is_read', false)
+            ->whereHas('order', function ($query) use ($userId, $role) {
+                $query->where($role . '_id', $userId);
+            })
+            ->update(['is_read' => true]);
     }
 }

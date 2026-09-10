@@ -41,6 +41,11 @@ class Order extends Model
         return $this->belongsTo(User::class, 'seller_id');
     }
 
+    public function notifications()
+    {
+        return $this->hasMany(OrderNotification::class);
+    }
+
     // แปลงสถานะเป็นข้อความไทย + สี (ไว้แสดงบนหน้าเว็บ)
     // แปลงสถานะเป็นข้อความไทย + สี (ไว้แสดงบนหน้าเว็บ)
     public function statusInfo()

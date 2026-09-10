@@ -135,6 +135,7 @@ Route::middleware('auth')->group(function () {
     // ระบบซื้อขาย (ห้ามแอดมิน)
     Route::middleware('not.admin')->group(function () {
         Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+        Route::post('/orders/notifications/read', [OrderController::class, 'markNotificationsRead'])->name('orders.notifications.read');
         Route::post('/orders/{book}', [OrderController::class, 'store'])->name('orders.store');
         Route::post('/orders/{order}/accept', [OrderController::class, 'accept'])->name('orders.accept');
         Route::post('/orders/{order}/slip', [OrderController::class, 'uploadSlip'])->name('orders.slip');

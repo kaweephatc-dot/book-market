@@ -5,6 +5,52 @@ function bumpBadge(badge) {
     return count;
 }
 
+function setBadgeCount(badge, count) {
+    const normalizedCount = Math.max(0, Number.parseInt(count, 10) || 0);
+    badge.textContent = normalizedCount > 99 ? '99+' : normalizedCount;
+    badge.classList.toggle('d-none', normalizedCount === 0);
+    return normalizedCount;
+}
+
+function buildOrderNotificationItem(payload) {
+    const item = document.createElement('a');
+    item.className = 'dropdown-item small order-notification-item';
+    item.dataset.notificationId = payload.id;
+    item.dataset.notificationRole = payload.recipient_role;
+    item.href = payload.order_url;
+
+    const order = document.createElement('strong');
+    order.textContent = 'ออเดอร์ #' + payload.order_id;
+    item.appendChild(order);
+    item.appendChild(document.createElement('br'));
+    item.appendChild(document.createTextNode(payload.book_title || 'หนังสือถูกลบแล้ว'));
+    item.appendChild(document.createElement('br'));
+
+    const type = document.createElement('span');
+    type.className = 'text-muted';
+    type.textContent = payload.type_label || 'มีความเคลื่อนไหวในออเดอร์';
+    item.appendChild(type);
+
+    return item;
+}
+
+function removeOrderNotificationItems(role) {
+    document.querySelectorAll('.order-notification-item').forEach((item) => {
+        if (item.dataset.notificationRole === role) {
+            item.remove();
+        }
+    });
+
+    const list = document.getElementById('orderNotificationList');
+    if (list && !list.querySelector('.order-notification-item')) {
+        const empty = document.createElement('div');
+        empty.className = 'small text-muted px-2';
+        empty.dataset.orderNotificationsEmpty = 'true';
+        empty.textContent = 'ไม่มีรายการใหม่';
+        list.appendChild(empty);
+    }
+}
+
 function isViewingChannel(channel) {
     return window.__activeChatChannel === channel;
 }
@@ -281,19 +327,15 @@ function insertNewReportCard(list, payload) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    if (!window.Echo) {
-        return;
-    }
-
     const container = document.querySelector('[data-current-user-id]');
 
     if (container) {
         const userId = container.dataset.currentUserId;
-        const personalChannel = window.Echo.private('chat-user.' + userId);
+        const personalChannel = window.Echo ? window.Echo.private('chat-user.' + userId) : null;
 
         // ตัวเลขแดงข้อความแชทซื้อขาย (สำหรับผู้ใช้ทั่วไป)
         const chatBadge = document.getElementById('chatUnreadBadge');
-        if (chatBadge) {
+        if (chatBadge && personalChannel) {
             personalChannel.listen('.message.sent', (payload) => {
                 if (isViewingChannel('chat.' + payload.conversation_id)) {
                     return;
@@ -305,7 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // ตัวเลขแดงข้อความจากแอดมิน (สำหรับผู้ใช้ทั่วไป)
         const reportMessageBadge = document.getElementById('reportMessageUnreadBadge');
-        if (reportMessageBadge) {
+        if (reportMessageBadge && personalChannel) {
             personalChannel.listen('.report-message.sent', (payload) => {
                 if (isViewingChannel('report-chat.' + payload.report_chat_id)) {
                     return;
@@ -314,6 +356,111 @@ document.addEventListener('DOMContentLoaded', () => {
                 bumpBadge(reportMessageBadge);
             });
         }
+
+        const orderBadge = document.getElementById('orderUnreadBadge');
+        const orderChannel = window.Echo ? window.Echo.private('order-user.' + userId) : null;
+        const handledOrderNotifications = new Set();
+        const orderNotifications = document.getElementById('orderNotifications');
+        const orderNotificationList = document.getElementById('orderNotificationList');
+        let activeOrderRole = orderNotifications?.dataset.activeOrderRole || null;
+
+        const markOrderRoleRead = (role) => {
+            if (!orderNotifications) {
+                return Promise.resolve(null);
+            }
+
+            return fetch(orderNotifications.dataset.orderReadUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken(),
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ role }),
+            })
+                .then((response) => response.ok ? response.json() : null)
+                .then((data) => {
+                    if (data && orderBadge) {
+                        setBadgeCount(orderBadge, data.unread_count);
+                    }
+                    removeOrderNotificationItems(role);
+                    return data;
+                });
+        };
+
+        if (orderBadge && orderChannel) {
+            orderChannel.listen('.order.notification.sent', (payload) => {
+                if (payload.id && handledOrderNotifications.has(payload.id)) {
+                    return;
+                }
+
+                if (payload.id) {
+                    handledOrderNotifications.add(payload.id);
+                }
+
+                if (activeOrderRole === payload.recipient_role) {
+                    markOrderRoleRead(activeOrderRole);
+                    return;
+                }
+
+                if (payload.unread_count !== undefined) {
+                    setBadgeCount(orderBadge, payload.unread_count);
+                } else {
+                    bumpBadge(orderBadge);
+                }
+
+                if (orderNotificationList) {
+                    const empty = orderNotificationList.querySelector('[data-order-notifications-empty]');
+                    if (empty) {
+                        empty.remove();
+                    }
+                    orderNotificationList.insertBefore(buildOrderNotificationItem(payload), orderNotificationList.children[1] || null);
+                }
+            });
+        }
+
+        if (orderNotifications) {
+            document.querySelectorAll('[data-order-tab]').forEach((tab) => {
+                tab.addEventListener('click', () => {
+                    activeOrderRole = tab.dataset.orderTab;
+
+                    if (activeOrderRole === 'seller' && tab.dataset.orderTabUrl) {
+                        window.location.assign(tab.dataset.orderTabUrl);
+                        return;
+                    }
+
+                    markOrderRoleRead(activeOrderRole)
+                        .then((data) => {
+                            if (!data && tab.dataset.orderTabUrl) {
+                                window.location.assign(tab.dataset.orderTabUrl);
+                            }
+                        })
+                        .catch(() => {
+                            // Server-side tab URL is the fallback when AJAX mark-read is unavailable.
+                            if (tab.dataset.orderTabUrl) {
+                                window.location.assign(tab.dataset.orderTabUrl);
+                            }
+                        });
+                });
+            });
+        }
+
+        if (orderBadge) {
+            orderBadge.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                if (orderNotificationList) {
+                    orderNotificationList.classList.toggle('show');
+                }
+            });
+        }
+
+        document.addEventListener('click', (event) => {
+            if (orderNotificationList && !orderNotificationList.contains(event.target) && event.target !== orderBadge) {
+                orderNotificationList.classList.remove('show');
+            }
+        });
     }
 
     // ช่องแจ้งเตือนรวมของแอดมิน (ข้อความแชทรายงาน + รายงานใหม่)
@@ -321,7 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const newReportsBadge = document.getElementById('newReportsBadge');
     const reportsList = document.querySelector('[data-reports-list]');
 
-    if (reportBadge || newReportsBadge || reportsList) {
+    if (window.Echo && (reportBadge || newReportsBadge || reportsList)) {
         const adminChannel = window.Echo.private('admin-notifications');
 
         // ตัวเลขแดงข้อความแชทรายงาน (สำหรับแอดมิน)

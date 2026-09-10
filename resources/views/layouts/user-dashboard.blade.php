@@ -163,11 +163,27 @@
                         </a>
                     </li>
 
-                    <li class="nav-item {{ request()->routeIs('orders.index') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('orders.index') }}">
+                    <li class="nav-item position-relative {{ request()->routeIs('orders.index') ? 'active' : '' }}">
+                        <a class="nav-link position-relative" href="{{ route('orders.index') }}">
                             <i>🧾</i>
                             <span>คำสั่งซื้อ</span>
+                            <span id="orderUnreadBadge" class="badge badge-counter bg-danger {{ (($orderUnreadCount ?? 0) > 0) ? '' : 'd-none' }}">
+                                {{ (($orderUnreadCount ?? 0) > 99) ? '99+' : ($orderUnreadCount ?? 0) }}
+                            </span>
                         </a>
+                        <div id="orderNotificationList" class="dropdown-menu p-2" style="min-width: 280px;">
+                            <div class="small text-muted px-2 pb-1">การแจ้งเตือนออเดอร์</div>
+                            @forelse (($orderUnreadNotifications ?? collect()) as $notification)
+                                @php $notificationRole = $notification->order->buyer_id === auth()->id() ? 'buyer' : 'seller'; @endphp
+                                <a class="dropdown-item small order-notification-item" data-notification-id="{{ $notification->id }}" data-notification-role="{{ $notificationRole }}" href="{{ route('orders.index', ['tab' => $notificationRole]) }}#order-{{ $notification->order_id }}">
+                                    <strong>ออเดอร์ #{{ $notification->order_id }}</strong><br>
+                                    <span>{{ $notification->order->book->title ?? 'หนังสือถูกลบแล้ว' }}</span><br>
+                                    <span class="text-muted">{{ $notification->typeLabel() }}</span>
+                                </a>
+                            @empty
+                                <div class="small text-muted px-2" data-order-notifications-empty>ไม่มีรายการใหม่</div>
+                            @endforelse
+                        </div>
                     </li>
 
                     <hr class="sidebar-divider">

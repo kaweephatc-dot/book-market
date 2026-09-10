@@ -17,6 +17,11 @@ Broadcast::channel('chat-user.{userId}', function ($user, $userId) {
     return (int) $user->id === (int) $userId;
 });
 
+// Kanaal per gebruiker voor badge แจ้งเตือนออเดอร์
+Broadcast::channel('order-user.{userId}', function ($user, $userId) {
+    return (int) $user->id === (int) $userId;
+});
+
 // ห้องแชทรายงาน - เข้าได้ทั้งเจ้าของแชทและแอดมิน
 Broadcast::channel('report-chat.{chatId}', function ($user, $chatId) {
     $chat = ReportChat::find($chatId);

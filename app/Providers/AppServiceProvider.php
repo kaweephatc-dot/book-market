@@ -22,6 +22,8 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Support\Facades\View::composer(['layouts.app', 'layouts.user-dashboard'], function ($view) {
             $unreadCount = 0;
             $unreadReportMessageCount = 0;
+            $orderUnreadCount = 0;
+            $orderUnreadNotifications = collect();
 
             if (\Illuminate\Support\Facades\Auth::check()) {
                 $userId = \Illuminate\Support\Facades\Auth::id();
@@ -55,10 +57,35 @@ class AppServiceProvider extends ServiceProvider
                     ->where('report_messages.user_id', '!=', $userId)
                     ->where('report_messages.is_read', false)
                     ->count();
+
+                    $orderUnreadCount = \App\Models\OrderNotification::where('recipient_id', $userId)
+                        ->where('is_read', false)
+                        ->whereHas('order', function ($query) use ($userId) {
+                            $query->where(function ($query) use ($userId) {
+                                $query->where('buyer_id', $userId)
+                                    ->orWhere('seller_id', $userId);
+                            });
+                        })
+                        ->count();
+
+                    $orderUnreadNotifications = \App\Models\OrderNotification::with('order.book')
+                        ->where('recipient_id', $userId)
+                        ->where('is_read', false)
+                        ->whereHas('order', function ($query) use ($userId) {
+                            $query->where(function ($query) use ($userId) {
+                                $query->where('buyer_id', $userId)
+                                    ->orWhere('seller_id', $userId);
+                            });
+                        })
+                        ->latest()
+                        ->limit(10)
+                        ->get();
             }
 
             $view->with('unreadMessageCount', $unreadCount);
             $view->with('unreadReportMessageCount', $unreadReportMessageCount);
+                    $view->with('orderUnreadCount', $orderUnreadCount);
+                    $view->with('orderUnreadNotifications', $orderUnreadNotifications);
         });
 
         // แชร์จำนวนข้อความแชทรายงานที่ยังไม่อ่านไปหน้าแอดมิน (สำหรับ navbar)

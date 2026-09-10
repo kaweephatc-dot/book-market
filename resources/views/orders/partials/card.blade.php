@@ -1,5 +1,5 @@
 @php $info = $order->statusInfo(); @endphp
-<div class="card mb-3 shadow-sm">
+<div class="card mb-3 shadow-sm" id="order-{{ $order->id }}">
     <div class="card-body">
         <div class="d-flex gap-3">
             {{-- รูปหนังสือ --}}
